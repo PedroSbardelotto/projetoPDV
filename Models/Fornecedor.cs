@@ -1,0 +1,27 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PDV.Models
+{
+    public class Fornecedor
+    {
+        public int Id { get; set; }
+        [Required]
+        public string NomeRazao { get; set; }
+        [Required]
+        public string NomeFantasia { get; set; }
+        [Required]
+        [MaxLength(14)]
+        public string CNPJ { get; set; }
+        [Required]
+        public string InscricaoEstadual { get; set; }
+        [Required]
+        public string Email { get; set; }
+        [Required]
+        public string Endereco { get; set; }
+        [Required]
+        public string Contato { get; set; }
+        public DateTime DataEntrada { get; set; }
+        public DateTime DataAtualizacao { get; set; }
+
+    }
+}

@@ -1,0 +1,15 @@
+﻿namespace PDV.Models
+{
+    public class ProdutosVenda
+    {
+        public int Id { get; set; }
+        public int Quantidade { get; set; }
+        public DateTime DataEntrada { get; set; }
+
+        public int VendasId { get; set; }
+        public Vendas Vendas { get; set; }
+        public int ProdutoId { get; set; }
+        public Produto Produto { get; set; }
+        
+    }
+}

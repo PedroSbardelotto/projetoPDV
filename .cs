@@ -1,0 +1,8 @@
+﻿# Visual Studio files
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.vsidx
+*.db
