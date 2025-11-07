@@ -28,21 +28,6 @@
                 <span asp-validation-for="Preco" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataEntrada" class="control-label"></label>
-                <input asp-for="DataEntrada" class="form-control" />
-                <span asp-validation-for="DataEntrada" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataAtualizacao" class="control-label"></label>
-                <input asp-for="DataAtualizacao" class="form-control" />
-                <span asp-validation-for="DataAtualizacao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="CategoriaId" class="control-label"></label>
                 <select asp-for="CategoriaId" class ="form-control" asp-items="ViewBag.CategoriaId"></select>
             </div>
@@ -58,5 +43,27 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Esta linha é a mais importante.
+            // Ela substitui a validação de "number" padrão do jQuery
+            // por uma nova que aceita o formato pt-BR (com vírgula).
+            $.validator.methods.number = function (value, element) {
+                return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:\.\d{3})+)?(?:,\d+)?$/.test(value);
+            };
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            // O seletor '#Preco' usa o ID gerado pelo asp-for="Preco"
+            $('#Preco').mask('000.000.000.000.000,00', {reverse: true});
+        });
+    </script>
 }

@@ -57,10 +57,14 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nome,Quantidade,Preco,Status,DataEntrada,DataAtualizacao,CategoriaId")] Produto produto)
+        public async Task<IActionResult> Create([Bind("Nome,Quantidade,Preco,CategoriaId")] Produto produto)
         {
             if (ModelState.IsValid)
             {
+                produto.Status = true;
+                produto.DataEntrada = DateTime.Now;
+                produto.DataAtualizacao = DateTime.Now;
+
                 _context.Add(produto);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -102,6 +106,7 @@ namespace PDV.Controllers
             {
                 try
                 {
+                    produto.DataAtualizacao = DateTime.Now;
                     _context.Update(produto);
                     await _context.SaveChangesAsync();
                 }
@@ -159,7 +164,6 @@ namespace PDV.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
         private bool ProdutoExists(int id)
         {
           return (_context.Produto?.Any(e => e.Id == id)).GetValueOrDefault();

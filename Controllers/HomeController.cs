@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using PDV.Models;
+using System.Diagnostics;
 
 namespace PDV.Controllers
 {
@@ -26,7 +27,17 @@ namespace PDV.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var exceptionHandlesPathFeatures = HttpContext.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+            if(exceptionHandlesPathFeatures != null)
+            {
+                _logger.LogError(exceptionHandlesPathFeatures.Error, "Erro global capturado na rota: {Path}", exceptionHandlesPathFeatures.Path);
+            }
+
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                Message = exceptionHandlesPathFeatures?.Error?.Message
+            });
         }
     }
 }
