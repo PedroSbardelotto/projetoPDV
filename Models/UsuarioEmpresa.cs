@@ -20,7 +20,7 @@ namespace PDV.Models
         public string Senha { get; set; }
         [Required]
         public string Contato { get; set; }
-        public DateTime DataEntrada { get; set; }
+        public DateTime DataEntrada { get; set; } = DateTime.Now;
 
         public int ChaveAcessoId { get; set; }
         public ChaveAcesso ChaveAcesso { get; set; }

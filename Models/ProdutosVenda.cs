@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public int Quantidade { get; set; }
-        public DateTime DataEntrada { get; set; }
+        public DateTime DataEntrada { get; set; } = DateTime.Now;
 
         public int VendasId { get; set; }
         public Vendas Vendas { get; set; }

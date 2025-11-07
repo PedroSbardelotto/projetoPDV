@@ -11,8 +11,8 @@ namespace PDV.Models
         public int Quantidade { get; set; }
         [Column(TypeName = "decimal(18,2)")]
         public decimal Preco { get; set; }
-        public int Status { get; set; }
-        public DateTime DataEntrada { get; set; }
+        public Boolean Status { get; set; }
+        public DateTime DataEntrada { get; set; } = DateTime.Now;
         public DateTime DataAtualizacao { get; set; }
 
         public int CategoriaId { get; set; }
