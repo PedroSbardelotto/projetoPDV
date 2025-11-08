@@ -34,6 +34,14 @@
                             <span asp-validation-for="Quantidade" class="text-danger small"></span>
                         </div>
                         <div class="col-sm-6 mb-3">
+                            <label asp-for="QuantidadeMinima" class="form-label"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-box"></i></span>
+                                <input asp-for="QuantidadeMinima" class="form-control" type="number" placeholder="0" />
+                            </div>
+                            <span asp-validation-for="QuantidadeMinima" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-6 mb-3">
                             <label asp-for="Preco" class="form-label"></label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>

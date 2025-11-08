@@ -61,6 +61,7 @@ namespace PDV.Controllers
             if (ModelState.IsValid)
             {
                 cliente.CPF = cliente.CPF.Replace(".", "").Replace("-", "");
+                cliente.Contato = cliente.Contato.Replace("(", "").Replace(")", "").Replace(" ", "").Replace("-", "");
                 cliente.DataEntrada = DateTime.Now;
                 cliente.DataAtualizacao = DateTime.Now;
 
@@ -92,7 +93,7 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Email,Contato,CNPJ,InscricaoEstadual,DataEntrada,DataAtualizacao")] Cliente cliente)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Email,Contato,CPF,InscricaoEstadual,DataEntrada,DataAtualizacao")] Cliente cliente)
         {
             if (id != cliente.Id)
             {
@@ -101,6 +102,9 @@ namespace PDV.Controllers
 
             if (ModelState.IsValid)
             {
+                cliente.CPF = cliente.CPF.Replace(".", "").Replace("-", "");
+                cliente.Contato = cliente.Contato.Replace("(", "").Replace(")", "").Replace(" ", "").Replace("-", "");
+                cliente.DataAtualizacao = DateTime.Now;
                 try
                 {
                     _context.Update(cliente);

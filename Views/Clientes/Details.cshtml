@@ -23,7 +23,7 @@
                     <dd class="col-sm-9">@Html.DisplayFor(model => model.Email)</dd>
 
                     <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Contato)</dt>
-                    <dd class="col-sm-9">@Html.DisplayFor(model => model.Contato)</dd>
+                    <dd class="col-sm-9" id="cel-mask">@Html.DisplayFor(model => model.Contato)</dd>
 
                     <hr class="my-3">
                     <dt class="col-sm-3">@Html.DisplayNameFor(model => model.CPF)</dt>
@@ -60,6 +60,7 @@
     <script type="text/javascript">
         $(document).ready(function(){
             $('#cpf-mask').mask('000.000.000-00', {reverse: true});
+            $('#cel-mask').mask('(00) 00000-0000');
         });
     </script>
 }

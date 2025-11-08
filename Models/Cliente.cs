@@ -8,12 +8,15 @@ namespace PDV.Models
         [Required]
         public string Nome { get; set; }
         [Required]
+        [EmailAddress]
         public string Email { get; set; }
         public string Contato { get; set; }
         [Required]
         [MaxLength(14)]
         public string CPF { get; set; }
+        [Display(Name = "Criado em:")]
         public DateTime DataEntrada { get; set; }
+        [Display(Name = "Atualizado em:")]
         public DateTime DataAtualizacao { get; set; }
 
     }
