@@ -12,10 +12,8 @@ namespace PDV.Models
         public string Contato { get; set; }
         [Required]
         [MaxLength(14)]
-        public string CNPJ { get; set; }
-        [Required]
-        public string InscricaoEstadual { get; set; }
-        public DateTime DataEntrada { get; set; } = DateTime.Now;
+        public string CPF { get; set; }
+        public DateTime DataEntrada { get; set; }
         public DateTime DataAtualizacao { get; set; }
 
     }

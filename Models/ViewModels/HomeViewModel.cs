@@ -1,8 +1,8 @@
 ﻿namespace PDV.Models.ViewModels
 {
-    public class ProdutoViewModel
+    public class HomeViewModel
     {
-        public Produto Produto { get; set; }
         public List<Categoria> Categorias { get; set; }
+        public List<Produto> Produtos { get; set; }
     }
 }

@@ -56,10 +56,14 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nome,Email,Contato,CNPJ,InscricaoEstadual,DataEntrada,DataAtualizacao")] Cliente cliente)
+        public async Task<IActionResult> Create([Bind("Nome,Email,Contato,CPF")] Cliente cliente)
         {
             if (ModelState.IsValid)
             {
+                cliente.CPF = cliente.CPF.Replace(".", "").Replace("-", "");
+                cliente.DataEntrada = DateTime.Now;
+                cliente.DataAtualizacao = DateTime.Now;
+
                 _context.Add(cliente);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

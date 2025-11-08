@@ -1,59 +1,142 @@
 ﻿@model IEnumerable<PDV.Models.Produto>
+@using System.Globalization
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Gestão de Produtos";
+    // Define a cultura pt-BR para formatar a moeda corretamente
+    var culture = new CultureInfo("pt-BR");
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">@ViewData["Title"]</h1>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-lg me-2"></i>Novo Produto
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Nome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Quantidade)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Preco)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Categoria)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nome)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Quantidade)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Preco)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Categoria.Nome)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between">
+        <h5 class="mb-0">Produtos Cadastrados</h5>
+        <a asp-action="Index" asp-controller="Categorias" class="btn btn-success shadow-sm">
+            <i class="bi bi-tags-fill me-2"></i>Categorias
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.Nome)</th>
+                        <th>@Html.DisplayNameFor(model => model.Preco)</th>
+                        <th>@Html.DisplayNameFor(model => model.Quantidade)</th>
+                        <th>@Html.DisplayNameFor(model => model.Categoria)</th>
+                        <th class="text-center">@Html.DisplayNameFor(model => model.Status)</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.Nome)</td>
+
+                            <td>@item.Preco.ToString("C", culture)</td>
+
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Quantidade)
+                                @if (item.Quantidade <= 5)
+                                {
+                                    <span class="badge bg-warning text-dark ms-2" title="Estoque baixo!">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    </span>
+                                }
+                            </td>
+
+                            <td>@Html.DisplayFor(modelItem => item.Categoria.Nome)</td>
+
+                            <td class="text-center">
+                                @if (item.Status)
+                                {
+                                    <span class="badge bg-success">Ativo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inativo</span>
+                                }
+                            </td>
+
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Detalhes">
+                                    <i class="bi bi-search"></i>
+                                </a>
+
+                                <button typea="button" class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-product-id="@item.Id"
+                                        data-product-name="@item.Nome"
+                                        title="Excluir">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja excluir o produto: <strong id="productName"></strong>?
+                <p class="text-danger mt-2">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form asp-action="Delete" method="post" id="deleteForm">
+                    <input type="hidden" id="productId" name="id" />
+                    <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        // Pega o evento de abertura do modal
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+
+            // Botão que acionou o modal
+            var button = event.relatedTarget;
+
+            // Extrai as informações dos atributos data-bs-*
+            var productId = button.getAttribute('data-product-id');
+            var productName = button.getAttribute('data-product-name');
+
+            // Atualiza o conteúdo do modal
+            var modalBodyName = deleteModal.querySelector('#productName');
+            var deleteFormInput = deleteModal.querySelector('#productId');
+            var deleteForm = deleteModal.querySelector('#deleteForm');
+
+            modalBodyName.textContent = productName;
+            deleteFormInput.value = productId;
+
+            // Atualiza o 'action' do formulário para o ID correto
+            var currentAction = '@Url.Action("Delete")';
+            deleteForm.action = currentAction + '/' + productId;
+        });
+    </script>
 }
-    </tbody>
-</table>

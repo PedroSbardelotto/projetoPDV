@@ -1,8 +1,256 @@
-﻿@{
+﻿@model PDV.Models.ViewModels.HomeViewModel
+@using System.Globalization
+
+@{
     ViewData["Title"] = "Home Page";
+    // Essencial para formatar R$ e para o JavaScript entender os números
+    var culture = CultureInfo.InvariantCulture;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid pt-3">
+    <div class="row">
+
+        <div class="col-md-8">
+
+            <div class="mb-3">
+                <input type="text" id="product-search" class="form-control form-control-lg" placeholder="Digite o nome ou código do produto...">
+            </div>
+
+            <ul class="nav nav-pills mb-3" id="category-filter">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-bs-target-category="all">Todos</a>
+                </li>
+
+                @foreach (var categoria in Model.Categorias)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-target-category="@categoria.Id">@categoria.Nome</a>
+                    </li>
+                }
+            </ul>
+
+            <div class="row" id="product-grid" style="max-height: 70vh; overflow-y: auto;">
+
+                @foreach (var produto in Model.Produtos)
+                {
+                    <div class="col-md-4 col-lg-3 mb-3 product-card" data-category-id="@produto.CategoriaId">
+
+                        <div class="card h-100 shadow-sm product-clickable"
+                             style="cursor: pointer;"
+                             data-product-id="@produto.Id"
+                             data-product-name="@produto.Nome"
+                             data-product-price="@produto.Preco.ToString(culture)">
+
+                            <div class="card-body text-center d-flex flex-column justify-content-center">
+                                <h5 class="card-title fs-6">@produto.Nome</h5>
+                                <h6 class="card-subtitle mb-2 text-danger fw-bold">@produto.Preco.ToString("C")</h6>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm" style="position: sticky; top: 20px;">
+                <div class="card-header">
+                    <h4 class="mb-0">Resumo do Pedido</h4>
+                </div>
+
+                <ul class="list-group list-group-flush" id="cart-items" style="max-height: 50vh; overflow-y: auto;">
+
+                    <li class="list-group-item text-center text-muted" id="cart-empty-message">
+                        Nenhum item adicionado.
+                    </li>
+                </ul>
+
+                <div class="card-body border-top">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Subtotal</span>
+                        <span id="cart-subtotal">R$ 0,00</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <h5 class="mb-0">Total</h5>
+                        <h5 class="mb-0 text-danger fw-bold" id="cart-total">R$ 0,00</h5>
+                    </div>
+                </div>
+
+                <div class="card-footer p-3">
+                    <button class="btn btn-success btn-lg w-100 fw-bold" id="btn-finish-sale">
+                        <i class="bi bi-check-circle-fill me-2"></i>Finalizar Venda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Função para formatar moeda (para exibir no carrinho)
+        const formatCurrency = (value) => {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        };
+
+        // Estado do carrinho (um array de objetos)
+        let cart = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const categoryLinks = document.querySelectorAll('#category-filter .nav-link');
+            const productCards = document.querySelectorAll('.product-card');
+            const searchInput = document.getElementById('product-search');
+            const productGrid = document.getElementById('product-grid');
+            const cartItemsList = document.getElementById('cart-items');
+            const cartEmptyMessage = document.getElementById('cart-empty-message');
+            const cartSubtotal = document.getElementById('cart-subtotal');
+            const cartTotal = document.getElementById('cart-total');
+
+            // --- 1. LÓGICA DE FILTRO (CATEGORIA E BUSCA) ---
+
+            const filterProducts = () => {
+                const activeCategory = document.querySelector('#category-filter .nav-link.active').getAttribute('data-bs-target-category');
+                const searchTerm = searchInput.value.toLowerCase();
+
+                productCards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category-id');
+                    const cardName = card.querySelector('.card-title').textContent.toLowerCase();
+
+                    // Condição de Categoria
+                    const categoryMatch = (activeCategory === 'all' || activeCategory === cardCategory);
+
+                    // Condição de Busca
+                    const searchMatch = (cardName.includes(searchTerm));
+
+                    // Mostrar ou esconder
+                    if (categoryMatch && searchMatch) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            };
+
+            // Adiciona evento de clique aos links de categoria
+            categoryLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Remove 'active' de todos
+                    categoryLinks.forEach(l => l.classList.remove('active'));
+                    // Adiciona 'active' ao clicado
+                    e.target.classList.add('active');
+                    filterProducts();
+                });
+            });
+
+            // Adiciona evento de "digitar" na busca
+            searchInput.addEventListener('input', filterProducts);
+
+            // --- 2. LÓGICA DE ADICIONAR AO CARRINHO ---
+
+            productGrid.addEventListener('click', (e) => {
+                const clickedCard = e.target.closest('.product-clickable');
+                if (!clickedCard) return; // Não foi um card de produto clicável
+
+                const product = {
+                    id: clickedCard.getAttribute('data-product-id'),
+                    name: clickedCard.getAttribute('data-product-name'),
+                    price: parseFloat(clickedCard.getAttribute('data-product-price'))
+                };
+
+                addToCart(product);
+            });
+
+            const addToCart = (product) => {
+                // Esconde a mensagem de carrinho vazio
+                if (cartEmptyMessage) {
+                    cartEmptyMessage.style.display = 'none';
+                }
+
+                // Verifica se o item já está no carrinho
+                const existingItem = cart.find(item => item.id === product.id);
+
+                if (existingItem) {
+                    // Se existe, só aumenta a quantidade
+                    existingItem.quantity++;
+                } else {
+                    // Se não existe, adiciona com quantidade 1
+                    product.quantity = 1;
+                    cart.push(product);
+                }
+
+                updateCartUI();
+            };
+
+            // --- 3. LÓGICA DE ATUALIZAR O CARRINHO (UI) ---
+
+            const updateCartUI = () => {
+                // Limpa a lista antes de redesenhar
+                cartItemsList.innerHTML = '';
+
+                let subtotal = 0;
+
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        <div>
+                            <h6 class="mb-0">${item.name}</h6>
+                            <small class="text-muted">Qtd: ${item.quantity} x ${formatCurrency(item.price)}</small>
+                        </div>
+                        <span class="fw-bold">${formatCurrency(itemTotal)}</span>
+                        <button class="btn btn-sm btn-outline-danger border-0 btn-remove-item" data-product-id="${item.id}">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    `;
+                    cartItemsList.appendChild(li);
+                });
+
+                // Atualiza os totais
+                cartSubtotal.textContent = formatCurrency(subtotal);
+                cartTotal.textContent = formatCurrency(subtotal);
+
+                // Se o carrinho ficar vazio, mostra a mensagem
+                if (cart.length === 0 && cartEmptyMessage) {
+                    cartItemsList.appendChild(cartEmptyMessage);
+                    cartEmptyMessage.style.display = 'block';
+                }
+            };
+
+            // --- 4. LÓGICA DE REMOVER DO CARRINHO ---
+
+            cartItemsList.addEventListener('click', (e) => {
+                const removeButton = e.target.closest('.btn-remove-item');
+                if (removeButton) {
+                    const productId = removeButton.getAttribute('data-product-id');
+
+                    // Remove o item do array 'cart'
+                    cart = cart.filter(item => item.id !== productId);
+
+                    updateCartUI();
+                }
+            });
+
+            // --- 5. LÓGICA DE FINALIZAR VENDA ---
+            document.getElementById('btn-finish-sale').addEventListener('click', () => {
+                if(cart.length === 0) {
+                    alert('Nenhum item no carrinho!');
+                    return;
+                }
+
+                // Aqui você enviaria os dados do 'cart' para o seu Controller
+                console.log('Enviando para o backend:', cart);
+                alert('Venda finalizada! (Verifique o console para ver os dados)');
+
+                // Limpar carrinho após sucesso
+                cart = [];
+                updateCartUI();
+            });
+
+        });
+    </script>
+}
