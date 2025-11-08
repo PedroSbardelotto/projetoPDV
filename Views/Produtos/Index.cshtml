@@ -73,12 +73,13 @@
                                     <i class="bi bi-search"></i>
                                 </a>
 
-                                <button typea="button" class="btn btn-sm btn-outline-danger"
+                                <button type="button" class="btn btn-sm btn-outline-danger"
                                         data-bs-toggle="modal"
                                         data-bs-target="#deleteModal"
-                                        data-product-id="@item.Id"
-                                        data-product-name="@item.Nome"
-                                        title="Excluir">
+                                        data-bs-id="@item.Id"
+                                        data-bs-name="@item.Nome"
+                                        data-nome-base="produto"
+                                        data-bs-url="@Url.Action("Delete", "Produtos")">
                                     <i class="bi bi-trash-fill"></i>
                                 </button>
                             </td>
@@ -89,54 +90,4 @@
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirmar Exclusão</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Tem certeza que deseja excluir o produto: <strong id="productName"></strong>?
-                <p class="text-danger mt-2">Esta ação não pode ser desfeita.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form asp-action="Delete" method="post" id="deleteForm">
-                    <input type="hidden" id="productId" name="id" />
-                    <button type="submit" class="btn btn-danger">Sim, Excluir</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-@section Scripts {
-    <script>
-        // Pega o evento de abertura do modal
-        var deleteModal = document.getElementById('deleteModal');
-        deleteModal.addEventListener('show.bs.modal', function (event) {
-
-            // Botão que acionou o modal
-            var button = event.relatedTarget;
-
-            // Extrai as informações dos atributos data-bs-*
-            var productId = button.getAttribute('data-product-id');
-            var productName = button.getAttribute('data-product-name');
-
-            // Atualiza o conteúdo do modal
-            var modalBodyName = deleteModal.querySelector('#productName');
-            var deleteFormInput = deleteModal.querySelector('#productId');
-            var deleteForm = deleteModal.querySelector('#deleteForm');
-
-            modalBodyName.textContent = productName;
-            deleteFormInput.value = productId;
-
-            // Atualiza o 'action' do formulário para o ID correto
-            var currentAction = '@Url.Action("Delete")';
-            deleteForm.action = currentAction + '/' + productId;
-        });
-    </script>
-}
+<partial name="_DeleteModal" />
