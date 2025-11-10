@@ -70,6 +70,15 @@
                         <span id="cart-subtotal">R$ 0,00</span>
                     </div>
                     <hr>
+                     <div class="row">
+                         <div class="col-md-8">
+                            <span class="text-muted">Desconto</span>
+                         </div>
+                         <div class="col-md-4">
+                            <input type="number" id="desconto-pagamento" class="form-control" placeholder="0,00"/>
+                         </div>
+                    </div>
+                    <hr>
                     <div class="d-flex justify-content-between">
                         <h5 class="mb-0">Total</h5>
                         <h5 class="mb-0 text-danger fw-bold" id="cart-total">R$ 0,00</h5>
@@ -77,7 +86,7 @@
                 </div>
 
                 <div class="card-footer p-3">
-                    <button class="btn btn-success btn-lg w-100 fw-bold" id="btn-finish-sale">
+                    <button class="btn btn-success btn-lg w-100 fw-bold" id="btn-finish-sale" onclick="subtotalModal()">
                         <i class="bi bi-check-circle-fill me-2"></i>Finalizar Venda
                     </button>
                 </div>
@@ -85,6 +94,86 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalPagamento" tabindex="-1" aria-labelledby="modalPagamentoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPagamentoLabel">Selecionar Tipo de Pagamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <form id="formPagamento" asp-action="Create" asp-controller="Venda">
+                            <div id="formasPagamentoContainer">
+                                <div class="row mb-2 forma-pagamento">
+                                    <div class="col-md-4">
+                                        <label for="TipoPagamento_0">Forma de Pagamento</label>
+                                        <select class="form-control" name="TipoPagamentoIds">
+                                            @foreach (var tipo in ViewBag.TipoPagamentos)
+                                            {
+                                                <option value="@tipo.Id">@tipo.Descricao</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Valor (R$)</label>
+                                        <input type="number" id="pagamento" step="0.01" class="form-control" name="ValorPagamentos" placeholder="0,00">
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-end">
+                                        <button type="button" class="btn btn-danger btn-remove d-none"><i class="bi bi-trash-fill"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-primary mt-2" id="btnAddForma">
+                                Adicinar
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-4 border">
+                        <div class="row mt-2">
+                            <p class="col-md-6 text-secondary">Subtotal: </p>
+                            <p id="total-value-cart" class="col-md-6"></p>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <p class="col-md-6 fs-6">Total a pagar:</p>
+                            <p id="total-pagar" class="col-md-6 text-danger fw-bold fs-5"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formPagamento" class="btn btn-success">Confirmar Pagamento</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPagamentoSemProduto" tabindex="-1" aria-labelledby="modalPagamentoSemProdutoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalPagamentoLabel">Atenção</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <p class="">O carrinho está vazio, insira um produto para finalizar a compra!</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 @section Scripts {
     <script>
@@ -106,6 +195,24 @@
             const cartEmptyMessage = document.getElementById('cart-empty-message');
             const cartSubtotal = document.getElementById('cart-subtotal');
             const cartTotal = document.getElementById('cart-total');
+            const discontPayment = document.getElementById('desconto-pagamento')
+
+                const recalcularTotal = () => {
+            const subtotalText = cartSubtotal.textContent
+                .replace(/[^\d,.-]/g, '')
+                .replace(',', '.');
+            const subtotal = parseFloat(subtotalText) || 0;
+            const desconto = parseFloat(discontPayment.value) || 0;
+            const novoTotal = Math.max(subtotal - desconto, 0);
+
+            cartTotal.textContent = novoTotal.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        };
+
+        // 🎯 Atualiza o total sempre que o desconto mudar
+        discontPayment.addEventListener('input', recalcularTotal);
 
             // --- 1. LÓGICA DE FILTRO (CATEGORIA E BUSCA) ---
 
@@ -215,7 +322,8 @@
 
                 // Atualiza os totais
                 cartSubtotal.textContent = formatCurrency(subtotal);
-                cartTotal.textContent = formatCurrency(subtotal);
+                cartSubtotal.textContent = formatCurrency(subtotal);
+                recalcularTotal();
 
                 // Se o carrinho ficar vazio, mostra a mensagem
                 if (cart.length === 0 && cartEmptyMessage) {
@@ -253,19 +361,146 @@
             // --- 5. LÓGICA DE FINALIZAR VENDA ---
             document.getElementById('btn-finish-sale').addEventListener('click', () => {
                 if(cart.length === 0) {
-                    alert('Nenhum item no carrinho!');
+                    const btnFinishSale = document.getElementById('btn-finish-sale');
+                    const modalSemProduto = new bootstrap.Modal(document.getElementById('modalPagamentoSemProduto'));
+                    modalSemProduto.show();
                     return;
                 }
 
-                // Aqui você enviaria os dados do 'cart' para o seu Controller
-                console.log('Enviando para o backend:', cart);
-                alert('Venda finalizada! (Verifique o console para ver os dados)');
+                const btnFinish = document.getElementById('btn-finish-sale');
+                const modalFinalizar = new bootstrap.Modal(document.getElementById('modalPagamento'));
+                modalFinalizar.show();
 
                 // Limpar carrinho após sucesso
-                cart = [];
-                updateCartUI();
+                // cart = [];
+                // updateCartUI();
             });
 
         });
+
+        document.getElementById('btnAddForma').addEventListener('click', () => {
+            const container = document.getElementById('formasPagamentoContainer');
+            const valorPagar = document.getElementById('total-pagar').textContent
+            const btn = document.getElementById('btnAddForma')
+
+            const novaForma = document.createElement('div');
+            novaForma.classList.add('row', 'mb-2', 'forma-pagamento');
+
+            if(valorPagar != "R$ 0,00")
+            {
+
+            novaForma.innerHTML = `
+                <div class="col-md-4">
+                    <select class="form-control" name="TipoPagamentoIds">
+                        ${document.querySelector('select[name="TipoPagamentoIds"]').innerHTML}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" step="0.01" class="form-control pagamento" name="ValorPagamentos" placeholder="0,00">
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                   <button type="button" class="btn btn-danger btn-remove"><i class="bi bi-trash-fill"></i></button>
+                </div>
+            `;
+
+            } else {
+                btn.classList.add('d-none')
+
+                novaForma.innerHTML = `
+                <div>
+                    <span class="text-danger">O valor de pagamento é ${valorPagar}</span>
+                </div>`
+            }
+
+            container.appendChild(novaForma);
+        });
+
+        // Remover forma de pagamento
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-remove')) {
+                e.target.closest('.forma-pagamento').remove();
+            }
+        });
+
+        function subtotalModal() {
+            const valueCart = document.getElementById('cart-total').textContent;
+            const valueToModal = document.getElementById('total-value-cart');
+            const aPagar = document.getElementById("total-pagar");
+            valueToModal.textContent = valueCart
+            aPagar.textContent = valueCart
+        }
+
+        document.getElementById('modalPagamento').addEventListener('shown.bs.modal', () => {
+            const totalText = document.getElementById('cart-total').textContent
+                .replace(/[^\d,.-]/g, '')
+                .replace(',', '.');
+            const total = parseFloat(totalText) || 0;
+
+            const restanteEl = document.getElementById("total-pagar");
+            const btn = document.getElementById('btnAddForma');
+            const btnRemove = document.getElementById('btn-remove-pagamento');
+            const container = document.getElementById('formasPagamentoContainer');
+
+            // 🔹 Função que mostra/esconde o botão de adicionar forma
+            function atualizarBotao() {
+                const valor = restanteEl.textContent.trim();
+                if (valor === "R$ 0,00" || valor === "0,00") {
+                    btn.classList.add('d-none'); // esconde botão
+                } else {
+                    btn.classList.remove('d-none'); // mostra botão
+                }
+            }
+
+            function atualizarRemove() {
+            const inputs = container.querySelectorAll('input[name="ValorPagamentos"]');
+            inputs.forEach((inp, index) => {
+                const btnRemove = inp.closest('.forma-pagamento')?.querySelector('.btn-remove');
+                if (btnRemove) {
+                    if (inputs.length > 1) {
+                        btnRemove.classList.remove('d-none'); // esconde se só tiver 1 campo
+                    } else {
+                        btnRemove.classList.add('d-none'); // mostra se tiver 2 ou mais
+                    }
+                }
+            });
+        }
+
+            // 🔹 Função que recalcula o restante com base nos inputs
+            function atualizarRestante() {
+                const inputs = document.querySelectorAll('input[name="ValorPagamentos"]');
+                let soma = 0;
+                inputs.forEach(input => {
+                    soma += parseFloat(input.value) || 0;
+                });
+
+                const restante = Math.max(total - soma, 0);
+                restanteEl.textContent = `R$ ${restante.toFixed(2).replace('.', ',')}`;
+                atualizarBotao(); // atualiza o estado do botão
+                atualizarRemove()
+            }
+
+            // 🔹 Quando altera algum valor nos inputs, recalcula o restante
+            container.addEventListener('input', (e) => {
+                if (e.target.name === 'ValorPagamentos') {
+                    atualizarRestante();
+                }
+            });
+
+            // 🔹 Quando clica no botão de remover forma de pagamento
+            container.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-remove')) {
+                    const linha = e.target.closest('.forma-pagamento');
+                    linha.remove();
+                    atualizarRestante(); // recalcula e reexibe botão se necessário
+                }
+            });
+
+            // Inicializa ao abrir o modal
+
+            atualizarRestante();
+        });
+
+
+
     </script>
 }

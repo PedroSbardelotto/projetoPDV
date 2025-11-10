@@ -10,7 +10,6 @@ namespace PDV.Models
         public short Status { get; set; }
         public DateTime DataEntrada { get; set; }
         public DateTime DataAtualizacao { get; set; }
-
         public int TipoPagamentoId { get; set; }
         public TipoPagamento TipoPagamento { get; set; }
         public int ClienteId { get; set; }

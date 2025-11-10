@@ -23,6 +23,7 @@ namespace PDV.Controllers
             HomeViewModel homeViewModel = new HomeViewModel();
             homeViewModel.Categorias = _context.Categoria.ToList();
             homeViewModel.Produtos = _context.Produto.ToList();
+            ViewBag.TipoPagamentos = _context.TipoPagamento.ToList();
             return View(homeViewModel);
         }
 
