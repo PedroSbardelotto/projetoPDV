@@ -84,12 +84,38 @@
                         <h5 class="mb-0 text-danger fw-bold" id="cart-total">R$ 0,00</h5>
                     </div>
                 </div>
-
+                <div class="card-footer p-3 d-none" id="btn-pendencia">
+                    <button class="btn btn-primary btn-sm w-50 fw-bold" id="btn-abrir-modal">
+                        Gerar Pendência
+                    </button>
+                </div>
                 <div class="card-footer p-3">
                     <button class="btn btn-success btn-lg w-100 fw-bold" id="btn-finish-sale" onclick="subtotalModal()">
                         <i class="bi bi-check-circle-fill me-2"></i>Finalizar Venda
                     </button>
+                    <button class="btn btn-danger mt-4" onclick="window.location.href='/Home/FecharCaixa'">
+                        Fechar Caixa
+                    </button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPagamentoSemProduto" tabindex="-1" aria-labelledby="modalPagamentoSemProdutoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPagamentoLabel">Atenção</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <p class="">O carrinho está vazio, insira um produto para finalizar a compra!</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
         </div>
     </div>
@@ -154,26 +180,81 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalPagamentoSemProduto" tabindex="-1" aria-labelledby="modalPagamentoSemProdutoLabel" aria-hidden="true">
+@* MODAL PENDENCIA *@
+<div class="modal fade" id="modalPendencia" tabindex="-1" aria-labelledby="modalPendenciaLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header">
                 <h5 class="modal-title" id="modalPagamentoLabel">Atenção</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <p class="">O carrinho está vazio, insira um produto para finalizar a compra!</p>
-                </div>
+                <form id="formPendencia" asp-action="Create" asp-controller="Vendas">
+                    <input type="hidden" id="clienteSelecionado" name="ClienteId" />
+                    <input type="hidden" id="clienteSelecionado" name="ClienteId" />
+                    <input type="hidden" name="ValorTotal" id="valorTotal" />
+                    <input type="hidden" name="Status" id="statusVenda" />
+                    <input type="hidden" name="DataEntrada" id="dataEntrada" />
+                    <input type="hidden" name="DataAtualizacao" id="dataAtualizacao" />
+                    <input type="hidden" name="TipoPagamentoId" id="tipoPagamento" />
+                    <input type="hidden" name="UsuarioEmpresaId" id="usuarioEmpresa" />
+                    <input type="hidden" name="FechamentoId" id="fechamentoId" />
+
+                    <div id="formasPagamentoContainer">
+                        <div class="row mb-2 forma-pagamento">
+                            <div class="col-md-12">
+                                <div class="">
+                                    <div class="input-group mb-3">
+                                        <input type="text" id="pesquisaCliente" class="form-control" placeholder="Digite nome ou número do cliente...">
+                                        <button id="btnPesquisar" class="btn btn-primary" type="button"><i class="bi bi-search"></i></button>
+                                    </div>
+
+                                    <table id="cliente-search" class="table table-striped d-none">
+                                        <thead>
+                                            <tr>
+                                                <th>Número</th>
+                                                <th>Nome</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="listaClientes">
+                                            @foreach (var cliente in Model.Clientes)
+                                            {
+                                                <tr>
+                                                    <td>@cliente.Id</td>
+                                                    <td>@cliente.Nome</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <p id="clienteSelecionadoNome" class="mt-2 fw-bold text-primary"></p>
+                                </div>
+                            </div>
+                          </div> 
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formPendencia" class="btn btn-success">Confirmar</button>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    /* Faz a linha parecer clicável */
+    #listaClientes tr {
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+    }
 
+        /* Quando a linha é selecionada */
+        #listaClientes tr.table-active {
+            background-color: #0d6efd !important; /* azul padrão Bootstrap */
+            color: #fff !important;
+            font-weight: 600;
+        }
+</style>
 
 @section Scripts {
     <script>
@@ -184,6 +265,84 @@
 
         // Estado do carrinho (um array de objetos)
         let cart = [];
+
+        document.getElementById('btn-abrir-modal').addEventListener('click', () => {
+                const bntPendencia = document.getElementById('modalPendencia')
+                const modalPendencia = new bootstrap.Modal(bntPendencia);
+                modalPendencia.show()
+                return
+            })
+
+        document.getElementById("btnPesquisar").addEventListener("click", function () {
+            const termo = document.getElementById("pesquisaCliente").value.toLowerCase().trim();
+            const showClient = document.getElementById("cliente-search");
+            const linhas = document.querySelectorAll("#listaClientes tr");
+            const msgNenhum = document.getElementById("msg-nenhum");
+
+            // Se o campo estiver vazio, não faz a busca
+            if (!termo) {
+                return;
+            }
+
+            showClient.classList.remove("d-none");
+
+            let encontrou = false;
+
+            linhas.forEach(linha => {
+                const numero = linha.children[0].textContent.toLowerCase();
+                const nome = linha.children[1].textContent.toLowerCase();
+
+                if (numero.includes(termo) || nome.includes(termo)) {
+                    linha.style.display = "";
+                    encontrou = true;
+                } else {
+                    linha.style.display = "none";
+                }
+            });
+
+            // Exibe ou oculta a linha de "nenhum resultado"
+            if (msgNenhum) {
+                msgNenhum.style.display = encontrou ? "none" : "";
+            }
+        });
+
+        const listaClientes = document.getElementById("listaClientes");
+
+        if (listaClientes) {
+          listaClientes.addEventListener("click", function (e) {
+            const linha = e.target.closest("tr");
+            if (!linha) return;
+            if (linha.style.display === "none") return;
+
+            const inputHidden = document.getElementById("clienteSelecionado");
+            const nomeVisual = document.getElementById("clienteSelecionadoNome");
+
+            const clienteId = linha.children[0].textContent.trim();
+            const clienteNome = linha.children[1].textContent.trim();
+
+            // Se já está selecionado, desseleciona
+            if (linha.classList.contains("table-active")) {
+              linha.classList.remove("table-active");
+              if (inputHidden) inputHidden.value = "";
+              if (nomeVisual) nomeVisual.textContent = "";
+              return;
+            }
+
+            // Remove o destaque das outras linhas
+            document.querySelectorAll("#listaClientes tr").forEach(tr => tr.classList.remove("table-active"));
+
+            // Adiciona destaque na linha clicada
+            linha.classList.add("table-active");
+
+            // Atualiza o input hidden
+            if (inputHidden) inputHidden.value = clienteId;
+
+            // Mostra o nome visualmente
+            if (nomeVisual) nomeVisual.textContent = `Cliente selecionado: ${clienteNome}`;
+
+            console.log(`Cliente selecionado: ${clienteNome} (ID ${clienteId})`);
+          });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
 
@@ -330,6 +489,14 @@
                     cartItemsList.appendChild(cartEmptyMessage);
                     cartEmptyMessage.style.display = 'block';
                 }
+
+                // Mostra o botao do da Pendencia
+                const btnPendencia = document.getElementById('btn-pendencia');
+                    if (cart.length > 0) {
+                        btnPendencia.classList.remove('d-none');
+                    } else {
+                        btnPendencia.classList.add('d-none');
+                    }
             };
 
             // --- 4. LÓGICA DE REMOVER DO CARRINHO ---
@@ -377,6 +544,7 @@
             });
 
         });
+
 
         document.getElementById('btnAddForma').addEventListener('click', () => {
             const container = document.getElementById('formasPagamentoContainer');
@@ -500,6 +668,31 @@
             atualizarRestante();
         });
 
+        document.getElementById("formPendencia").addEventListener("submit", function () {
+
+            // Pega total do carrinho
+            let total = 0;
+            document.querySelectorAll(".item-total").forEach(item => {
+                total += parseFloat(item.textContent.replace(",", "."));
+            });
+
+            document.getElementById("valorTotal").value = total.toFixed(2);
+
+            // Preenche status
+            document.getElementById("statusVenda").value = "Finalizada";
+
+            // Datas automáticas
+            const agora = new Date().toISOString();
+            document.getElementById("dataEntrada").value = agora;
+            document.getElementById("dataAtualizacao").value = agora;
+
+            // Ex.: pagamento selecionado
+            // document.getElementById("tipoPagamento").value = document.querySelector("input[name='tipoPagamentoSelecionado']").value;
+
+            // Fechamento (caixa) atual
+            // document.getElementById("fechamentoId").value = sessionStorage.getItem("fechamentoId");
+
+        });
 
 
     </script>
