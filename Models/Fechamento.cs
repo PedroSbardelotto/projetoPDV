@@ -13,7 +13,7 @@ namespace PDV.Models
         [Display(Name = "Valor Abertura")]
         public decimal ValorAbertura { get; set; }
         [AllowNull]
-        [Display(Name = "VAlor Fechamento")]
+        [Display(Name = "Valor Fechamento")]
         public decimal ValorFechamento { get; set; }
         [Display(Name = "Data Abertura")]
         public DateTime DataAbertura { get; set; }

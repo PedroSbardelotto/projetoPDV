@@ -37,27 +37,27 @@
                         }
                     </dd>
 
-                    <dt class="col-sm-3">Valor Fechamento</dt>
-                    <dd class="col-sm-9">
-                        @if (Model.DataFechamento.HasValue)
-                        {
+                    @if (Model.DataFechamento.HasValue)
+                    {
+                        <dt class="col-sm-3">Valor Fechamento</dt>
+                        <dd class="col-sm-9">
                             <span>@Model.ValorFechamento.ToString("C", culture)</span>
-                        }
-                    </dd>
+                        </dd>
+                    }
 
-                    <dt class="col-sm-3">Diferença</dt>
-                    <dd class="col-sm-9">
-                        @if (Model.DataFechamento.HasValue)
-                        {
-                            var diferenca = Model.ValorFechamento - Model.ValorAbertura;
-                            var cor = diferenca > 0 ? "text-success" : (diferenca < 0 ? "text-danger" : "text-muted");
+                    @if (Model.DataFechamento.HasValue)
+                    {
+                        var diferenca = Model.ValorFechamento - Model.ValorAbertura;
+                        var cor = diferenca > 0 ? "text-success" : (diferenca < 0 ? "text-danger" : "text-muted");
+                        <dt class="col-sm-3">Diferença</dt>
+                        <dd class="col-sm-9">
 
                             <span class="fw-bold @cor">
                                 @diferenca.ToString("C", culture)
                                 @(diferenca > 0 ? "(Sobra)" : (diferenca < 0 ? "(Quebra)" : ""))
                             </span>
-                        }
-                    </dd>
+                        </dd>
+                    }
 
                 </dl>
             </div>
