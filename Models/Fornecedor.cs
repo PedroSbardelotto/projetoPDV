@@ -20,6 +20,7 @@ namespace PDV.Models
         public string Endereco { get; set; }
         [Required]
         public string Contato { get; set; }
+        public Boolean? Status { get; set; } = true;
         public DateTime DataEntrada { get; set; } = DateTime.Now;
         public DateTime DataAtualizacao { get; set; }
 

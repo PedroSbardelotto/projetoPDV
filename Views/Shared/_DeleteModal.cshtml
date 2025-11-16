@@ -3,14 +3,13 @@
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="deleteModalLabel">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Exclusão
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Desativação
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
-                <p>Tem certeza que deseja excluir o <span id="modalNameBase"></span>: <strong id="modalItemName"></strong>?</p>
-                <p class="text-danger mt-2"><small>Esta ação não pode ser desfeita.</small></p>
+                <p>Tem certeza que deseja desativar o <span id="modalNameBase"></span>: <strong id="modalItemName"></strong>?</p>
             </div>
 
             <div class="modal-footer">
@@ -18,7 +17,7 @@
 
                 <form method="post" id="deleteForm">
                     <input type="hidden" id="modalItemId" name="id" />
-                    <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+                    <button type="submit" class="btn btn-danger">Sim, Desativar</button>
                 </form>
             </div>
         </div>

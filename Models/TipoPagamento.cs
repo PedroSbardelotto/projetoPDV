@@ -7,5 +7,6 @@ namespace PDV.Models
         public int Id { get; set; }
         [Required]
         public string Descricao { get; set; }
+        public Boolean Status { get; set; }
     }
 }

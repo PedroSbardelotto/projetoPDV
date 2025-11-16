@@ -14,6 +14,7 @@ namespace PDV.Models
         [Required]
         [MaxLength(14)]
         public string CPF { get; set; }
+        public Boolean? Status { get; set; } = true;
         [Display(Name = "Criado em:")]
         public DateTime DataEntrada { get; set; }
         [Display(Name = "Atualizado em:")]

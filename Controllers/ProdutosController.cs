@@ -147,9 +147,9 @@ namespace PDV.Controllers
         }
 
         // POST: Produtos/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteOrActivate")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteOrActivateConfirmed(int id)
         {
             if (_context.Produto == null)
             {
@@ -158,15 +158,16 @@ namespace PDV.Controllers
             var produto = await _context.Produto.FindAsync(id);
             if (produto != null)
             {
-                _context.Produto.Remove(produto);
+                produto.Status = produto.Status ? false : true;
+                _context.Produto.Update(produto);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
         private bool ProdutoExists(int id)
         {
-          return (_context.Produto?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Produto?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

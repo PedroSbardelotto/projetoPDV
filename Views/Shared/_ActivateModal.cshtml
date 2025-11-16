@@ -1,0 +1,25 @@
+﻿<div class="modal fade" id="activateModal" tabindex="-1" aria-labelledby="activateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="activateModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Ativação
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>Tem certeza que deseja ativar o <span id="modalNameBase"></span>: <strong id="modalItemName"></strong>?</p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+                <form method="post" id="activateForm">
+                    <input type="hidden" id="modalItemId" name="id" />
+                    <button type="submit" class="btn btn-success">Sim, Ativar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
