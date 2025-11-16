@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PDV.Data;
 
@@ -11,9 +12,10 @@ using PDV.Data;
 namespace PDV.Migrations
 {
     [DbContext(typeof(PDVContext))]
-    partial class PDVContextModelSnapshot : ModelSnapshot
+    [Migration("20251116020553_add-ValorFechamento-Modal-Fechamento")]
+    partial class addValorFechamentoModalFechamento
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,7 +111,7 @@ namespace PDV.Migrations
                     b.Property<DateTime>("DataAbertura")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DataFechamento")
+                    b.Property<DateTime>("DataFechamento")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("ValorAbertura")

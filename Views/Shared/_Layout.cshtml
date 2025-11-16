@@ -10,62 +10,62 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/PDV.styles.css" asp-append-version="true" />
 
+    <style>
+        body {
+            overflow: hidden;
+        }
+        .nav-pills .nav-link.text-white {
+            transition: background-color 0.2s ease-in-out;
+        }
+        .nav-pills .nav-link.text-white:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body class="d-flex flex-column h-100">
+<body class="h-100">
+    <div class="d-flex h-100">
 
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-shop me-2"></i>PDV
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-cash-register-fill me-2"></i>Frente de Caixa
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Produtos" asp-action="Index">
-                                <i class="bi bi-box-seam-fill me-2"></i>Produtos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Clientes" asp-action="Index">
-                                <i class="bi bi-people-fill me-2"></i>Clientes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="TipoPagamentoes" asp-action="Index">
-                                <i class="bi bi-people-fill me-2"></i>Tipo de Pagamento
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        <nav class="d-flex flex-column flex-shrink-0 p-3 navbar-dark bg-dark shadow-sm" style="min-height: 100vh;">
+
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-shop me-2"></i>PDV
+            </a>
+
+            <hr class="text-secondary">
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-cash-coin me-2"></i>Frente de Caixa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" asp-area="" asp-controller="Produtos" asp-action="Index">
+                        <i class="bi bi-box-seam-fill me-2"></i>Produtos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" asp-area="" asp-controller="Clientes" asp-action="Index">
+                        <i class="bi bi-people-fill me-2"></i>Clientes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" asp-area="" asp-controller="TipoPagamentoes" asp-action="Index">
+                        <i class="bi bi-credit-card-fill me-3"></i>Tipo de Pagamento
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" asp-area="" asp-controller="Fechamentoes" asp-action="Index">
+                        <i class="bi bi-wallet2 me-2"></i>Fechamentos Caixa
+                    </a>
+                </li>
+            </ul>
         </nav>
-    </header>
 
-    <div class="flex-shrink-0">
-        <main role="main" class="container-fluid py-4">
+        <main role="main" class="flex-grow-1 p-4" style="max-height: 100vh; overflow-y: auto;">
             @RenderBody()
         </main>
+
     </div>
-
-    @* <footer class="footer mt-auto py-3 border-top bg-light">
-        <div class="container-fluid">
-            &copy; 2025 - PDV
-        </div>
-    </footer> *@
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 

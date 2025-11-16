@@ -1,13 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Globalization;
 using PDV.Data;
+using PDV.Models.Interfaces;
+using PDV.Services;
+using System.Globalization;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<PDVContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("PDVContext") ?? throw new InvalidOperationException("Connection string 'SenacLojasContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IFechamentoService, FechamentoService>();
 
 var supportedCultures = new[] { new CultureInfo("pt-BR") };
 builder.Services.Configure<RequestLocalizationOptions>(options =>

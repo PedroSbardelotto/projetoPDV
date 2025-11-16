@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PDV.Data;
 using PDV.Models;
+using PDV.Models.Interfaces;
 using PDV.Models.ViewModels;
 using System.Diagnostics;
 
@@ -11,21 +13,38 @@ namespace PDV.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly PDVContext _context;
+        private readonly IFechamentoService _fechamentoService;
 
-        public HomeController(ILogger<HomeController> logger, PDVContext context)
+        public HomeController(ILogger<HomeController> logger, PDVContext context, IFechamentoService fechamentoService)
         {
             _logger = logger;
             _context = context;
+            _fechamentoService = fechamentoService;
         }
 
         public IActionResult Index()
         {
             HomeViewModel homeViewModel = new HomeViewModel();
             homeViewModel.Categorias = _context.Categoria.ToList();
-            homeViewModel.Produtos = _context.Produto.ToList();
+            homeViewModel.Produtos = _context.Produto.Where(p=> p.Status == true).ToList();
             homeViewModel.Clientes = _context.Cliente.ToList();
+            homeViewModel.Fechamento = _context.Fechamento.Where(f => f.DataAbertura.Date == DateTime.Today && f.DataFechamento == null).SingleOrDefault();
             ViewBag.TipoPagamentos = _context.TipoPagamento.ToList();
             return View(homeViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult AbrirCaixa(decimal valorInicial)
+        {
+            _fechamentoService.AbrirNovoCaixa(valorInicial);
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public IActionResult FecharCaixa(decimal ValorFechamento)
+        {
+            _fechamentoService.FecharCaixa(ValorFechamento);
+            return RedirectToAction("Index");
         }
 
         public IActionResult Privacy()

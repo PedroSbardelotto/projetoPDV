@@ -1,47 +1,73 @@
 ﻿@model IEnumerable<PDV.Models.Fechamento>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Histórico de Caixa";
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">@ViewData["Title"]</h1>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Valor)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataAbertura)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataFechamento)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Valor)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataAbertura)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataFechamento)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">Registros de Fechamento</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-start ps-3">    
+                            @Html.DisplayNameFor(model => model.DataAbertura)
+                        </th>
+                        <th class="text-center">
+                            @Html.DisplayNameFor(model => model.ValorAbertura)
+                        </th>
+                        <th class="text-center">
+                            @Html.DisplayNameFor(model => model.ValorFechamento)
+                        </th>
+                        <th class="text-center">
+                            Status
+                        </th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-start ps-3">
+                                @item.DataAbertura.ToString("g")
+                            </td>
+                            <td class="text-center">
+                                @item.ValorAbertura.ToString("C")
+                            </td>
+                            <td class="text-center">
+                                @if (item.DataFechamento.HasValue)
+                                {
+                                    <span>@item.ValorFechamento.ToString("C")</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (item.DataFechamento.HasValue)
+                                {
+                                    <span class="badge bg-secondary">Fechado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Aberto</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Detalhes">
+                                    <i class="bi bi-search"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
