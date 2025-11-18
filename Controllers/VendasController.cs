@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PDV.Data;
+using PDV.Enums;
 using PDV.Models;
 
 namespace PDV.Controllers
@@ -63,18 +64,48 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ValorTotal,Status,DataEntrada,DataAtualizacao,TipoPagamentoId,ClienteId,UsuarioEmpresaId,FechamentoId")] Vendas vendas)
+        public async Task<IActionResult> Create([Bind("Id,ValorTotal,Status,DataEntrada,DataAtualizacao,TipoPagamentoId,ClienteId,UsuarioEmpresaId,FechamentoId,ProdutosVenda")] Vendas vendas)
         {
             if (ModelState.IsValid)
             {
+                DateTime dtAtual = DateTime.Now;
+
+                Fechamento objFechamento = await _context.Fechamento.Where(f => f.DataFechamento == null).FirstOrDefaultAsync();
+
+                if (vendas.ClienteId != null)
+                {
+                    vendas.Status = (short)Situacao.Pendente;
+                    vendas.TipoPagamentoId = 0;
+                }
+                else
+                    vendas.Status = (short)Situacao.Finalizado;
+
+                vendas.FechamentoId = objFechamento.Id;
+                vendas.DataEntrada = dtAtual;
+                vendas.DataAtualizacao = dtAtual;
+
                 _context.Add(vendas);
                 await _context.SaveChangesAsync();
+
+                int intIdVenda = vendas.Id;
+
+                foreach (var item in vendas.ProdutosVenda)
+                {
+                    item.DataEntrada = dtAtual;
+                    item.VendasId = intIdVenda;
+                    _context.ProdutosVenda.Add(item);
+                    await _context.SaveChangesAsync();
+                }
                 return RedirectToAction(nameof(Index));
             }
+
+
             ViewData["ClienteId"] = new SelectList(_context.Cliente, "Id", "CNPJ", vendas.ClienteId);
             ViewData["FechamentoId"] = new SelectList(_context.Fechamento, "Id", "Id", vendas.FechamentoId);
             ViewData["TipoPagamentoId"] = new SelectList(_context.TipoPagamento, "Id", "Descricao", vendas.TipoPagamentoId);
             ViewData["UsuarioEmpresaId"] = new SelectList(_context.UsuarioEmpresa, "Id", "CNPJ", vendas.UsuarioEmpresaId);
+
+
             return View(vendas);
         }
 
@@ -173,14 +204,14 @@ namespace PDV.Controllers
             {
                 _context.Vendas.Remove(vendas);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool VendasExists(int id)
         {
-          return (_context.Vendas?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Vendas?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

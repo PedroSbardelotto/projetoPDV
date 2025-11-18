@@ -219,13 +219,7 @@ else
             <div class="modal-body p-2">
                 <form id="formPendencia" asp-action="Create" asp-controller="Vendas">
                     <input type="hidden" id="clienteSelecionado" name="ClienteId" />
-                    <input type="hidden" id="clienteSelecionado" name="ClienteId" />
                     <input type="hidden" name="ValorTotal" id="valorTotal" />
-                    <input type="hidden" name="Status" id="statusVenda" />
-                    <input type="hidden" name="DataEntrada" id="dataEntrada" />
-                    <input type="hidden" name="DataAtualizacao" id="dataAtualizacao" />
-                    <input type="hidden" name="TipoPagamentoId" id="tipoPagamento" />
-                    <input type="hidden" name="UsuarioEmpresaId" id="usuarioEmpresa" />
                     <input type="hidden" name="FechamentoId" id="fechamentoId" />
 
                     <div id="formasPagamentoContainer">
@@ -753,27 +747,38 @@ else
 
         document.getElementById("formPendencia").addEventListener("submit", function () {
 
+            const form = this;
+
+            // 1. Limpa quaisquer inputs de ItemVendaIds e Quantidades anteriores (para evitar duplicatas)
+            form.querySelectorAll('input[name^="ItensVendaIds"], input[name^="Quantidades"]').forEach(input => input.remove());
+
             // Pega total do carrinho
             let total = 0;
+
             document.querySelectorAll(".item-total").forEach(item => {
                 total += parseFloat(item.textContent.replace(",", "."));
+                document.getElementById("valorTotal").value = total.toFixed(2);
             });
 
-            document.getElementById("valorTotal").value = total.toFixed(2);
+    
+            cart.forEach((item, index) => {
+                // Input para o ID do Produto (ou Id do Item de Venda, se o nome for diferente no backend)
+                const inputId = document.createElement('input');
+                inputId.type = 'hidden';
+                inputId.name = `ProdutosVenda[${index}].ProdutoId`; // Ou 'ItensVenda[${index}].ProdutoId' dependendo do seu Model Binder no C#
+                inputId.value = item.id;
+                form.appendChild(inputId);
 
-            // Preenche status
-            document.getElementById("statusVenda").value = "Finalizada";
+                // Input para a Quantidade
+                const inputQtd = document.createElement('input');
+                inputQtd.type = 'hidden';
+                inputQtd.name = `ProdutosVenda[${index}].Quantidade`; // Ou 'ItensVenda[${index}].Quantidade'
+                inputQtd.value = item.quantity;
+                form.appendChild(inputQtd);
 
-            // Datas automáticas
-            const agora = new Date().toISOString();
-            document.getElementById("dataEntrada").value = agora;
-            document.getElementById("dataAtualizacao").value = agora;
-
-            // Ex.: pagamento selecionado
-            // document.getElementById("tipoPagamento").value = document.querySelector("input[name='tipoPagamentoSelecionado']").value;
-
-            // Fechamento (caixa) atual
-            // document.getElementById("fechamentoId").value = sessionStorage.getItem("fechamentoId");
+                // Log para conferência
+                console.log(`Item Pendência Adicionado: ID=${item.id}, Qtd=${item.quantity}, Index=${index}`);
+            });
 
         });
 
