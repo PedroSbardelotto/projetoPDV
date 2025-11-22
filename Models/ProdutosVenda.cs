@@ -1,7 +1,10 @@
-﻿namespace PDV.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PDV.Models
 {
     public class ProdutosVenda
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public int Quantidade { get; set; }
         public DateTime DataEntrada { get; set; } = DateTime.Now;
