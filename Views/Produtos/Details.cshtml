@@ -3,62 +3,123 @@
 
 @{
     ViewData["Title"] = "Detalhes do Produto";
-    // Define a cultura pt-BR para formatar a moeda e datas
     var culture = new CultureInfo("pt-BR");
+
+    // Lógica visual de estoque
+    bool estoqueBaixo = Model.Quantidade <= Model.QuantidadeMinima;
+    string estoqueClass = estoqueBaixo ? "bg-warning bg-opacity-10 text-warning border-warning" : "bg-light text-dark border-light";
+
+    // Lógica visual de Status
+    string statusBadge = Model.Status ? "bg-success" : "bg-secondary";
+    string statusText = Model.Status ? "Ativo" : "Inativo";
+
+    // Lógica Financeira (Cálculo apenas para visualização)
+    decimal lucro = Model.Preco - Model.Custo;
+    decimal margem = Model.Preco > 0 ? (lucro / Model.Preco) * 100 : 0;
+    string corLucro = lucro >= 0 ? "text-success" : "text-danger";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
 
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">@ViewData["Title"]: @Model.Nome</h4>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 text-primary">
+                            <i class="bi bi-box-seam fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold mb-1">Cód. @Model.Id</h6>
+                            <h4 class="fw-bold text-dark mb-0">@Model.Nome</h4>
+                        </div>
+                    </div>
+                    <span class="badge @statusBadge rounded-pill px-3 py-2 shadow-sm">@statusText</span>
+                </div>
 
-                @if (Model.Status)
-                {
-                    <span class="badge bg-success">Ativo</span>
-                }
-                else
-                {
-                    <span class="badge bg-secondary">Inativo</span>
-                }
+                <div class="card-body px-4 pt-2 pb-4">
+
+                    <div class="mb-4 mt-2">
+                        <span class="badge bg-light text-dark border fs-6 fw-normal px-3 py-2 rounded-pill">
+                            <i class="bi bi-tag-fill me-2 text-secondary"></i>@Model.Categoria?.Nome
+                        </span>
+                    </div>
+
+                    <div class="p-4 rounded-4 bg-light mb-4 border border-light">
+                        <h6 class="fw-bold text-primary small text-uppercase mb-3">
+                            <i class="bi bi-cash-stack me-2"></i>Financeiro
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-6 col-md-4">
+                                <small class="text-muted d-block fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">Custo</small>
+                                <span class="fs-5 fw-bold text-muted">@Model.Custo.ToString("C", culture)</span>
+                            </div>
+
+                            <div class="col-6 col-md-4 border-start border-secondary border-opacity-10">
+                                <small class="text-muted d-block fw-bold text-uppercase mb-1" style="font-size: 0.75rem;">Venda</small>
+                                <span class="fs-4 fw-bold text-dark">@Model.Preco.ToString("C", culture)</span>
+                            </div>
+
+                            <div class="col-12 col-md-4 pt-3 pt-md-0 border-start-md border-secondary border-opacity-10">
+                                <div class="bg-white rounded-3 p-2 shadow-sm border border-light">
+                                    <small class="text-muted d-block fw-bold text-uppercase mb-1" style="font-size: 0.7rem;">Margem Aprox.</small>
+                                    <div class="@corLucro fw-bold">
+                                        <span class="fs-6">@lucro.ToString("C", culture)</span>
+                                        <small class="ms-1 opacity-75">(@margem.ToString("F0")%)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-4 border @estoqueClass mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold small text-uppercase mb-0">
+                                <i class="bi bi-boxes me-2"></i>Controle de Estoque
+                            </h6>
+                            @if (estoqueBaixo)
+                            {
+                                <span class="badge bg-warning text-dark shadow-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i> Repor</span>
+                            }
+                        </div>
+
+                        <div class="row text-center g-3">
+                            <div class="col-6">
+                                <div class="bg-white rounded-3 p-3 shadow-sm h-100 d-flex flex-column justify-content-center">
+                                    <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Disponível</small>
+                                    <span class="fs-3 fw-bold @(estoqueBaixo ? "text-warning" : "text-dark")">@Model.Quantidade</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-white rounded-3 p-3 shadow-sm border border-light h-100 d-flex flex-column justify-content-center opacity-75">
+                                    <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Mínimo Ideal</small>
+                                    <span class="fs-4 fw-bold text-secondary">@Model.QuantidadeMinima</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-muted small px-2">
+                        <div class="col-6">
+                            <i class="bi bi-calendar-plus me-1"></i> Criado: @Model.DataEntrada.ToString("d")
+                        </div>
+                        <div class="col-6 text-end">
+                            <i class="bi bi-arrow-repeat me-1"></i> Atualizado: @Model.DataAtualizacao.ToString("d")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light p-4 border-top-0 d-flex justify-content-between align-items-center">
+                    <a asp-action="Index" class="btn btn-link text-decoration-none text-muted fw-bold p-0">
+                        <i class="bi bi-arrow-left me-1"></i> Voltar
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-pencil-square me-2"></i>Editar
+                    </a>
+                </div>
             </div>
 
-            <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Nome)</dt>
-                    <dd class="col-sm-9">@Html.DisplayFor(model => model.Nome)</dd>
-
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Categoria)</dt>
-                    <dd class="col-sm-9">@Html.DisplayFor(model => model.Categoria.Nome)</dd>
-
-                    <hr class="my-3">
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Preco)</dt>
-                    <dd class="col-sm-9">@Model.Preco.ToString("C", culture)</dd>
-
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Quantidade)</dt>
-                    <dd class="col-sm-9">@Html.DisplayFor(model => model.Quantidade) unidades</dd>
-
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.QuantidadeMinima)</dt>
-                    <dd class="col-sm-9">@Html.DisplayFor(model => model.QuantidadeMinima) unidades</dd>
-
-                    <hr class="my-3">
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DataEntrada)</dt>
-                    <dd class="col-sm-9">@Model.DataEntrada.ToString("f", culture)</dd>
-
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DataAtualizacao)</dt>
-                    <dd class="col-sm-9">@Model.DataAtualizacao.ToString("f", culture)</dd>
-                </dl>
-            </div>
-
-            <div class="card-footer d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Voltar à Lista
-                </a>
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
-                    <i class="bi bi-pencil-fill me-2"></i>Editar
-                </a>
-            </div>
         </div>
     </div>
 </div>

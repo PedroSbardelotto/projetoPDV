@@ -1,41 +1,47 @@
 ﻿@model PDV.Models.TipoPagamento
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Pagamento";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
 
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h4 class="mb-0">@ViewData["Title"]</h4>
-            </div>
-            <div class="card-body">
-                <form asp-action="Edit">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 text-center">
 
-                    <input type="hidden" asp-for="Id" />
-
-                    <div class="mb-3">
-                        <label asp-for="Descricao" class="form-label"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-tag-fill"></i></span>
-                            <input asp-for="Descricao" class="form-control" placeholder="Digite Aqui" />
+                    <div class="mb-4">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-flex text-success mb-3">
+                            <i class="bi bi-credit-card-2-front fs-2"></i>
                         </div>
-                        <span asp-validation-for="Descricao" class="text-danger small"></span>
+                        <h4 class="fw-bold text-dark">Editar Pagamento</h4>
+                        <p class="text-muted small">Altere a descrição da forma de pagamento.</p>
                     </div>
 
-                    <hr />
-                    <div class="d-flex justify-content-end gap-2">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Voltar
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-2"></i>Salvar Alterações
-                        </button>
-                    </div>
-                </form>
+                    <form asp-action="Edit" class="text-start">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-4">
+                            <label asp-for="Descricao" class="form-label fw-bold small text-uppercase text-muted">Descrição</label>
+                            <div class="input-group input-group-lg">
+                                <input asp-for="Descricao" class="form-control bg-light border-0" />
+                            </div>
+                            <span asp-validation-for="Descricao" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm rounded-3">
+                                Atualizar
+                            </button>
+                            <a asp-action="Index" class="btn btn-link text-secondary text-decoration-none small">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -45,19 +51,4 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $.validator.methods.number = function (value, element) {
-                return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:\.\d{3})+)?(?:,\d+)?$/.test(value);
-            };
-        });
-    </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#Preco').mask('000.000.000.000.000,00', {reverse: true});
-        });
-    </script>
 }

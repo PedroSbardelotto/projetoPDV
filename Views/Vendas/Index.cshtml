@@ -2,100 +2,120 @@
 @using System.Globalization
 
 @{
-    ViewData["Title"] = "Gestão de Vendas";
-    // Define a cultura pt-BR para formatar a moeda corretamente
+    ViewData["Title"] = "Histórico de Vendas";
     var culture = new CultureInfo("pt-BR");
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">@ViewData["Title"]</h1>
-    <a asp-action="Create" class="btn btn-primary shadow-sm">
-        <i class="bi bi-cart-plus-fill me-2"></i>Nova Venda
-    </a>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Histórico de Vendas</h5>
-        <!-- Botão opcional de Relatórios ou Filtros, caso queira adicionar futuramente -->
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Vendas</h2>
+            <p class="text-muted small mb-0">Histórico de transações</p>
+        </div>
+        <a asp-action="Index" asp-controller="Home" class="btn btn-primary px-4 fw-bold shadow-sm rounded-3">
+            <i class="bi bi-cart-plus-fill me-2"></i>Nova Venda
+        </a>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-                <thead class="table-light">
-                    <tr class="text-center">
-                        <th>@Html.DisplayNameFor(model => model.DataEntrada)</th>
-                        <th>@Html.DisplayNameFor(model => model.Cliente)</th>
-                        <th>@Html.DisplayNameFor(model => model.TipoPagamento)</th>
-                        <th>@Html.DisplayNameFor(model => model.ValorTotal)</th>
-                        <th>@Html.DisplayNameFor(model => model.Status)</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
+
+    <!-- Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <td class="text-center">@Html.DisplayFor(modelItem => item.DataEntrada)</td>
-
-                            <td class="text-center">
-                                @if (item.Cliente != null)
-                                {
-                                    <!-- Exibindo CPF ou Nome, dependendo do que preferir -->
-                                    <i class="bi bi-person me-1 text-muted"></i>
- 
-                                    @Html.DisplayFor(modelItem => item.Cliente.Nome)
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Consumidor Final</span>
-                                }
-                            </td>
-
-                            <td class="text-center">@Html.DisplayFor(modelItem => item.TipoPagamento.Descricao)</td>
-
-                            <td class="text-center fw-bold">@item.ValorTotal.ToString("C", culture)</td>
-
-                            <td class="text-center">
-                                @if (item.Status == 1) // Assumindo que True = Venda Concluída/Ativa
-                                {
-                                    <span class="badge bg-success">Concluída</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Pendente</span>
-                                }
-                            </td>
-
-                            <td class="text-center">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
-                                    <i class="bi bi-pencil-fill"></i>
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Detalhes">
-                                    <i class="bi bi-search"></i>
-                                </a>
-
-                                @if (item.Status == 1)
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteModal"
-                                            data-bs-id="@item.Id"
-                                            data-bs-name="Venda #@item.Id"
-                                            data-nome-base="venda"
-                                            data-bs-url="@Url.Action("Delete", "Vendas")">
-                                        <i class="bi bi-trash-fill"></i>
-                                    </button>
-                                }
-                            </td>
+                            <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Data</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0">Cliente</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0">Pagamento</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-end">Valor</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Status</th>
+                            <th class="pe-4 py-3 text-uppercase text-muted small fw-bold border-0 text-end">Ações</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderByDescending(x => x.DataEntrada))
+                        {
+                            <tr class="border-bottom border-light">
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-dark">@item.DataEntrada.ToString("dd/MM/yyyy")</span>
+                                        <span class="small text-muted">@item.DataEntrada.ToString("HH:mm")</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (item.Cliente != null)
+                                    {
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                @item.Cliente.Nome.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <span class="fw-semibold text-dark">@item.Cliente.Nome</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic small">Consumidor Final</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border fw-normal">
+                                        @(item.TipoPagamento?.Descricao ?? "N/A")
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="fw-bold text-success">@item.ValorTotal.ToString("C", culture)</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.Status == 1)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Concluída</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Pendente</span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="btn-group">
+                                        @if (item.Status != 1)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary" title="Editar">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+                                        }
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light text-info" title="Recibo/Detalhes">
+                                            <i class="bi bi-receipt"></i>
+                                        </a>
+
+                                        @if (item.Status == 1)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-light text-danger"
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                    data-bs-id="@item.Id"
+                                                    data-bs-name="Venda #@item.Id"
+                                                    data-nome-base="venda"
+                                                    data-bs-url="@Url.Action("Delete", "Vendas")"
+                                                    title="Estornar/Excluir">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-cart-x text-muted opacity-25" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3">Nenhuma venda registrada.</p>
+                </div>
+            }
         </div>
     </div>
 </div>
 
-<!-- Mantendo as parciais para os Modais funcionarem -->
 <partial name="_DeleteModal" />
-<partial name="_ActivateModal" />

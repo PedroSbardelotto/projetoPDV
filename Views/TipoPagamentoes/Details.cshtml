@@ -1,4 +1,4 @@
-﻿@model PDV.Models.TipoPagamento
+﻿@* @model PDV.Models.TipoPagamento
 
 @{
     ViewData["Title"] = "Details";
@@ -21,4 +21,94 @@
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
+</div> *@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@model PDV.Models.TipoPagamento
+
+@{
+    ViewData["Title"] = "Detalhes do Pagamento";
+
+    // Lógica de ícone
+    string icon = "bi-credit-card-2-front";
+    string nome = Model.Descricao.ToLower();
+    if (nome.Contains("dinheiro")) icon = "bi-cash-stack";
+    else if (nome.Contains("pix")) icon = "bi-qr-code";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card border-0 shadow-sm rounded-4 text-center overflow-hidden">
+                <div class="card-body p-5">
+
+                    <div class="mb-4">
+                        <div class="bg-success bg-opacity-10 p-4 rounded-circle d-inline-flex text-success shadow-sm">
+                            <i class="bi @icon fs-1"></i>
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted small fw-bold letter-spacing-1 mb-1">Forma de Pagamento</h6>
+                    <h3 class="fw-bold text-dark mb-4">@Model.Descricao</h3>
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 rounded-pill fw-bold">Voltar</a>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">
+                            <i class="bi bi-pencil me-2"></i>Editar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer bg-light border-0 py-3">
+                    <small class="text-muted">ID do Sistema: #@Model.Id</small>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>

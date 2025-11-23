@@ -23,7 +23,7 @@ namespace PDV.Controllers
         // GET: Vendas
         public async Task<IActionResult> Index()
         {
-            var pDVContext = _context.Vendas.Include(v => v.Cliente).Include(v => v.Fechamento).Include(v => v.TipoPagamento).Include(v => v.UsuarioEmpresa);
+            var pDVContext = _context.Vendas.Include(v => v.Cliente).Include(v => v.Fechamento).Include(v => v.TipoPagamento).Include(v => v.UsuarioEmpresa).OrderByDescending(v=>v.DataEntrada);
             return View(await pDVContext.ToListAsync());
         }
 

@@ -2,148 +2,201 @@
 @using System.Globalization
 
 @{
-    ViewData["Title"] = "Detalhes do Cliente";
+    ViewData["Title"] = "Ficha do Cliente";
     var culture = new CultureInfo("pt-BR");
 
     var totalPendencias = Model.Pendencias?.Sum(x => x.ValorTotal) ?? 0;
     var qtdPendencias = Model.Pendencias?.Count() ?? 0;
+
+    // Gera inicial para o avatar
+    var inicial = !string.IsNullOrEmpty(Model.Cliente.Nome) ? Model.Cliente.Nome.Substring(0, 1).ToUpper() : "?";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
+<style>
+    /* --- CSS PARA O MODAL DE PAGAMENTO (CARDS) --- */
+    .payment-option-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 2px solid #e9ecef;
+        background-color: #fff;
+        color: #6c757d;
+    }
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-primary">
-                        <i class="bi bi-person-vcard me-2"></i>Dados Cadastrais
-                    </h5>
-                    @if (qtdPendencias > 0)
-                    {
-                        <span class="badge bg-danger rounded-pill">
-                            <i class="bi bi-exclamation-circle me-1"></i> Possui Pendências
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-success rounded-pill">
-                            <i class="bi bi-check-circle me-1"></i> Em dia
-                        </span>
-                    }
-                </div>
-            </div>
+        .payment-option-card:hover {
+            border-color: #adb5bd;
+            transform: translateY(-2px);
+        }
 
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-3 text-muted">@Html.DisplayNameFor(model => model.Cliente.Nome)</dt>
-                    <dd class="col-sm-9 fw-bold">@Html.DisplayFor(model => model.Cliente.Nome)</dd>
+        /* Estado Selecionado */
+        .payment-option-card.selected {
+            border-color: #198754; /* Verde Success */
+            background-color: #f0fff4; /* Fundo verde claro */
+            color: #198754;
+        }
 
-                    <dt class="col-sm-3 text-muted">@Html.DisplayNameFor(model => model.Cliente.Email)</dt>
-                    <dd class="col-sm-9">
-                        @if (!string.IsNullOrEmpty(Model.Cliente.Email))
-                        {
-                            @Html.DisplayFor(model => model.Cliente.Email)
-                        }
-                        else
-                        {
-                            <span class="text-muted fst-italic">Não informado</span>
-                        }
-                    </dd>
+    .payment-icon {
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 5px;
+    }
+</style>
 
-                    <dt class="col-sm-3 text-muted">@Html.DisplayNameFor(model => model.Cliente.Contato)</dt>
-                    <dd class="col-sm-9" id="cel-mask">@Html.DisplayFor(model => model.Cliente.Contato)</dd>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-9">
 
-                    <div class="col-12"><hr class="my-2 dashed"></div>
+            <!-- 1. CARD DE PERFIL -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <!-- Coluna Visual (Esquerda) -->
+                        <div class="col-md-4 bg-light d-flex flex-column align-items-center justify-content-center p-4 border-end border-light">
+                            <div class="rounded-circle bg-white shadow-sm text-primary d-flex align-items-center justify-content-center fw-bold mb-3"
+                                 style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                @inicial
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1 text-center">@Model.Cliente.Nome</h5>
+                            <span class="badge bg-white text-secondary border rounded-pill px-3">
+                                ID: #@Model.Cliente.Id
+                            </span>
 
-                    <dt class="col-sm-3 text-muted">@Html.DisplayNameFor(model => model.Cliente.CPF)</dt>
-                    <dd class="col-sm-9" id="cpf-mask">@Html.DisplayFor(model => model.Cliente.CPF)</dd>
+                            <div class="mt-3 text-center">
+                                @if (qtdPendencias > 0)
+                                {
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2">
+                                        <i class="bi bi-exclamation-circle me-1"></i> Possui Pendências
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">
+                                        <i class="bi bi-check-circle me-1"></i> Em dia
+                                    </span>
+                                }
+                            </div>
+                        </div>
 
-                    <dt class="col-sm-3 text-muted">Cadastro</dt>
-                    <dd class="col-sm-9"><small>@Model.Cliente.DataEntrada.ToString("dd/MM/yyyy HH:mm")</small></dd>
-                </dl>
-            </div>
+                        <!-- Coluna Dados (Direita) -->
+                        <div class="col-md-8 p-4">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-4 border-bottom pb-2">Informações de Contato</h6>
 
-            <div class="card-footer bg-light d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left me-2"></i>Voltar
-                </a>
-                <a asp-action="Edit" asp-route-id="@Model?.Cliente.Id" class="btn btn-primary btn-sm">
-                    <i class="bi bi-pencil-fill me-2"></i>Editar Dados
-                </a>
-            </div>
-        </div>
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="small text-muted fw-bold">E-mail</label>
+                                    <div class="d-flex align-items-center mt-1">
+                                        <i class="bi bi-envelope text-secondary me-2"></i>
+                                        <span>@(string.IsNullOrEmpty(Model.Cliente.Email) ? "Não informado" : Model.Cliente.Email)</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="small text-muted fw-bold">Telefone</label>
+                                    <div class="d-flex align-items-center mt-1">
+                                        <i class="bi bi-whatsapp text-success me-2"></i>
+                                        <span id="cel-mask">@Model.Cliente.Contato</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="small text-muted fw-bold">CPF</label>
+                                    <div class="d-flex align-items-center mt-1">
+                                        <i class="bi bi-card-heading text-secondary me-2"></i>
+                                        <span id="cpf-mask">@Model.Cliente.CPF</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="small text-muted fw-bold">Cadastro</label>
+                                    <div class="d-flex align-items-center mt-1">
+                                        <i class="bi bi-calendar3 text-secondary me-2"></i>
+                                        <span>@Model.Cliente.DataEntrada.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                </div>
+                            </div>
 
-        @if (Model.Pendencias != null && Model.Pendencias.Any())
-        {
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-danger bg-opacity-10 py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 text-danger">
-                            <i class="bi bi-cash-coin me-2"></i>Pendências Financeiras
-                        </h5>
-                        <div class="text-end">
-                            <small class="text-muted d-block" style="line-height:1;">Total Devido</small>
-                            <span class="fs-5 fw-bold text-danger">@totalPendencias.ToString("C", culture)</span>
+                            <div class="mt-4 d-flex justify-content-end gap-2">
+                                <a asp-action="Index" class="btn btn-light text-secondary fw-bold border">Voltar</a>
+                                <a asp-action="Edit" asp-route-id="@Model.Cliente.Id" class="btn btn-outline-primary fw-bold">
+                                    <i class="bi bi-pencil me-2"></i>Editar Dados
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4">Data</th>
-                                    <th>Descrição / ID</th>
-                                    <th class="text-end pe-4">Valor</th>
-                                    <th class="text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.Pendencias.OrderByDescending(x => x.DataEntrada))
-                                {
+            <!-- 2. CARD FINANCEIRO (SÓ SE TIVER DÍVIDA) -->
+            @if (Model.Pendencias != null && Model.Pendencias.Any())
+            {
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-wallet2 me-2"></i>Extrato de Pendências</h5>
+                        <div class="bg-white bg-opacity-25 px-3 py-1 rounded-3">
+                            <small class="text-white text-opacity-75 d-block" style="font-size: 0.7rem; line-height: 1;">TOTAL DEVIDO</small>
+                            <span class="fw-bold fs-5">@totalPendencias.ToString("C", culture)</span>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
                                     <tr>
-                                        <td class="ps-4">
-                                            <i class="bi bi-calendar-event text-muted me-2"></i>
-                                            @item.DataEntrada.ToString("dd/MM/yyyy")
-                                        </td>
-                                        <td>
-                                            <span class="fw-bold text-dark">Venda #@item.Id</span>
-                                        </td>
-                                        <td class="text-end pe-4 fw-bold text-danger">
-                                            @item.ValorTotal.ToString("C", culture)
-                                        </td>
-                                        <td class="text-center">
-                                            <a asp-controller="Vendas" asp-action="Details" asp-route-id="@item.Id"
-                                               class="btn btn-sm btn-outline-secondary" title="Ver Detalhes">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-
-                                            <button type="button"
-                                                    class="btn btn-sm btn-success ms-1"
-                                                    title="Pagar Pendência"
-                                                    onclick="abrirModalPagamento(@item.Id, '@item.ValorTotal.ToString("C", culture)')">
-                                                <i class="bi bi-currency-dollar"></i>
-                                            </button>
-                                        </td>
+                                        <th class="ps-4 text-muted small fw-bold text-uppercase border-0">Data Compra</th>
+                                        <th class="text-muted small fw-bold text-uppercase border-0">Referência</th>
+                                        <th class="text-end text-muted small fw-bold text-uppercase border-0">Valor</th>
+                                        <th class="text-end pe-4 text-muted small fw-bold text-uppercase border-0">Ação</th>
                                     </tr>
-                                }
-                            </tbody>
-                            <tfoot class="table-light">
-                                <tr>
-                                    <td colspan="2" class="ps-4 fw-bold text-end">TOTAL GERAL:</td>
-                                    <td class="text-end pe-4 fw-bold text-danger">@totalPendencias.ToString("C", culture)</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Pendencias.OrderByDescending(x => x.DataEntrada))
+                                    {
+                                        <tr class="border-bottom border-light">
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 me-3 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                                        <i class="bi bi-arrow-down-left"></i>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-bold text-dark d-block">@item.DataEntrada.ToString("dd/MM/yyyy")</span>
+                                                        <span class="small text-muted">@item.DataEntrada.ToString("HH:mm")</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-secondary border">Venda #@item.Id</span>
+                                            </td>
+                                            <td class="text-end fw-bold text-danger">
+                                                @item.ValorTotal.ToString("C", culture)
+                                            </td>
+                                            <td class="pe-4 text-end">
+                                                <button type="button" class="btn btn-sm btn-success fw-bold px-3 shadow-sm"
+                                                        onclick="abrirModalPagamento(@item.Id, '@item.ValorTotal.ToString("C", culture)')">
+                                                    <i class="bi bi-currency-dollar me-1"></i> Receber
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+            else
+            {
+                <!-- Estado Vazio (Sem dívidas) -->
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-light dashed-border">
+                    <div class="mb-3 text-success opacity-50">
+                        <i class="bi bi-emoji-smile fs-1"></i>
+                    </div>
+                    <h5 class="text-muted fw-bold">Tudo certo por aqui!</h5>
+                    <p class="text-muted small mb-0">Este cliente não possui pendências financeiras.</p>
+                </div>
+            }
+
+        </div>
     </div>
 </div>
 
+<!-- MODAL DE PAGAMENTO (Adicionado Novamente) -->
 <div class="modal fade" id="modalPagamentoPendencia" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -156,7 +209,6 @@
 
                 <div class="modal-body p-4">
                     <input type="hidden" name="id" id="inputVendaId" />
-
                     <input type="hidden" name="tipoPagamentoId" id="inputTipoPagamentoId" required />
 
                     <div class="text-center mb-4">
@@ -176,8 +228,8 @@
                         {
                             foreach (var tipo in ViewBag.TipoPagamentos)
                             {
-                                // Lógica simples para escolher ícone baseado no nome (UI Dinâmica)
-                                string iconClass = "bi-cash-coin"; // Padrão
+                                // Lógica simples para ícones
+                                string iconClass = "bi-cash-coin";
                                 string desc = tipo.Descricao.ToLower();
 
                                 if (desc.Contains("pix")) iconClass = "bi-qr-code-scan";
@@ -198,17 +250,22 @@
                         }
                         else
                         {
-                            <div class="alert alert-warning">Nenhuma forma de pagamento cadastrada.</div>
+                            <div class="alert alert-warning">
+                                Nenhuma forma de pagamento cadastrada.
+                                <br><small>Verifique o controller se ViewBag.TipoPagamentos está sendo preenchido.</small>
+                            </div>
                         }
                     </div>
 
+                    <!-- Mensagem de erro visual -->
                     <div id="msgErroPagamento" class="text-danger small text-center mt-2 d-none">
-                        <i class="bi bi-exclamation-circle"></i> Selecione uma opção acima.
+                        <i class="bi bi-exclamation-circle"></i> Selecione uma opção para continuar.
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 bg-light p-3">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                <!-- Footer com Botão Confirmar -->
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-success fw-bold px-4" id="btnConfirmarPagamento" disabled>
                         <i class="bi bi-check-lg me-2"></i>Confirmar
                     </button>
@@ -217,10 +274,8 @@
         </div>
     </div>
 </div>
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 
     <script type="text/javascript">
@@ -236,12 +291,20 @@
             document.getElementById('displayVendaId').textContent = '#' + vendaId;
             document.getElementById('displayValor').textContent = valorFormatado;
 
+            // Reseta seleção anterior do modal
+            document.getElementById('inputTipoPagamentoId').value = "";
+            document.querySelectorAll('.payment-option-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById('btnConfirmarPagamento').disabled = true;
+            document.getElementById('msgErroPagamento').classList.add('d-none');
+
             // Abre o modal usando Bootstrap 5
             var modalEl = document.getElementById('modalPagamentoPendencia');
             var modal = new bootstrap.Modal(modalEl);
             modal.show();
         }
-            function selecionarPagamento(elemento, id) {
+
+        // Lógica de Seleção Visual (Cards)
+        function selecionarPagamento(elemento, id) {
             // 1. Remove a classe 'selected' de todos os cards
             document.querySelectorAll('.payment-option-card').forEach(card => {
                 card.classList.remove('selected');
@@ -253,38 +316,11 @@
             // 3. Atualiza o input hidden (que o formulário vai enviar)
             document.getElementById('inputTipoPagamentoId').value = id;
 
-            // 4. Habilita o botão de confirmar (Feedback UX)
+            // 4. Habilita o botão de confirmar
             document.getElementById('btnConfirmarPagamento').disabled = false;
 
             // 5. Esconde mensagem de erro se houver
             document.getElementById('msgErroPagamento').classList.add('d-none');
         }
     </script>
-    <style>
-        .payment-option-card {
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            border: 2px solid #e9ecef;
-            background-color: #fff;
-            color: #6c757d;
-        }
-
-            .payment-option-card:hover {
-                border-color: #adb5bd;
-                transform: translateY(-2px);
-            }
-
-            /* Estado Selecionado */
-            .payment-option-card.selected {
-                border-color: #198754; /* Verde Success do Bootstrap */
-                background-color: #f0fff4; /* Fundo verde bem claro */
-                color: #198754;
-            }
-
-        .payment-icon {
-            font-size: 1.5rem;
-            display: block;
-            margin-bottom: 5px;
-        }
-    </style>
 }

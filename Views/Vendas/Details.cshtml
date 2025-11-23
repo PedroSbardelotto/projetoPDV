@@ -1,177 +1,126 @@
-﻿@* @model PDV.Models.Vendas
-
-@{
-    ViewData["Title"] = "Details";
-}
-
-<h1>Details</h1>
-
-<div>
-    <h4>Vendas</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ValorTotal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ValorTotal)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DataEntrada)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DataEntrada)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DataAtualizacao)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DataAtualizacao)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TipoPagamento)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TipoPagamento.Descricao)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Cliente)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Cliente.CPF)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UsuarioEmpresa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UsuarioEmpresa.CNPJ)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Fechamento)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Fechamento.Id)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div> *@
-
-
-
-
-@model PDV.Models.Vendas
+﻿@model PDV.Models.Vendas
 @using System.Globalization
 
 @{
     ViewData["Title"] = $"Venda #{Model.Id}";
     var culture = new CultureInfo("pt-BR");
 
-    // Definição visual do Status
+    // Status Visual
     string statusBadge = "bg-secondary";
     string statusTexto = "Desconhecido";
     string statusIcon = "bi-question-circle";
+    string statusColor = "text-secondary";
 
     if (Model.Status == 1) // Finalizado
     {
         statusBadge = "bg-success bg-opacity-10 text-success border border-success";
-        statusTexto = "Pagamento Aprovado";
+        statusTexto = "Aprovado";
         statusIcon = "bi-check-circle-fill";
+        statusColor = "text-success";
     }
     else if (Model.Status == 2) // Pendente
     {
         statusBadge = "bg-warning bg-opacity-10 text-warning border border-warning";
         statusTexto = "Pendente (Fiado)";
         statusIcon = "bi-clock-history";
+        statusColor = "text-warning";
     }
-    else if (Model.Status == 0) // Cancelado (Suposição)
+    else if (Model.Status == 0) 
     {
         statusBadge = "bg-danger bg-opacity-10 text-danger border border-danger";
         statusTexto = "Cancelado";
         statusIcon = "bi-x-circle-fill";
+        statusColor = "text-danger";
     }
 }
 
 <style>
-    .receipt-container {
-        max-width: 500px; /* Largura típica de recibo */
+    /* Estilo de Recibo */
+    .receipt-card {
+        max-width: 480px;
         margin: 0 auto;
+        background: #fff;
+        position: relative;
     }
     
-    .dashed-line {
-        border-top: 2px dashed #dee2e6;
-        margin: 1.5rem 0;
+    /* Efeito de papel rasgado (opcional, mas bonito) */
+    .receipt-card::before {
+        content: "";
+        position: absolute;
+        top: -5px; left: 0; right: 0;
+        height: 10px;
+        background: radial-gradient(circle, transparent, transparent 50%, #fff 50%, #fff 100%) -7px -8px / 16px 16px repeat-x;
+        display: none; /* Ative se quiser efeito de cupom */
     }
 
-    .receipt-header {
-        text-align: center;
-        margin-bottom: 1.5rem;
+    .dashed-divider {
+        border-bottom: 2px dashed #e5e7eb;
+        margin: 1.5rem 0;
     }
 
     .info-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         font-size: 0.95rem;
+        color: #4b5563;
     }
-
-    .info-label {
-        color: #6c757d;
-    }
-
-    .info-value {
+    .info-row span:last-child {
         font-weight: 600;
-        color: #212529;
+        color: #111827;
         text-align: right;
     }
 
-    /* Esconde botões na hora de imprimir (Ctrl+P) */
+    /* Estilos de Impressão */
     @@media print {
+        body * { visibility: hidden; }
+        .receipt-card, .receipt-card * { visibility: visible; }
+        .receipt-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            max-width: 100%;
+            box-shadow: none !important;
+            border: none !important;
+        }
         .no-print { display: none !important; }
-        body { background-color: #fff; }
-        .receipt-card { box-shadow: none !important; border: none !important; }
     }
 </style>
 
-<div class="container py-4">
+<div class="container py-5">
     
-    <div class="receipt-container mb-3 d-flex justify-content-between align-items-center no-print">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-2"></i>Voltar
+    <!-- Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 receipt-card bg-transparent no-print">
+        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 fw-bold btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Voltar
         </a>
-        <div>
+        <div class="d-flex gap-2">
             @if(Model.Status != 1) 
             {
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-primary btn-sm me-1">
-                    <i class="bi bi-pencil"></i>
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-primary rounded-pill px-3 fw-bold btn-sm">
+                    <i class="bi bi-pencil me-1"></i> Editar
                 </a>
             }
-            <button onclick="window.print()" class="btn btn-dark btn-sm">
-                <i class="bi bi-printer-fill me-2"></i>Imprimir
+            <button onclick="window.print()" class="btn btn-dark rounded-pill px-3 fw-bold btn-sm shadow-sm">
+                <i class="bi bi-printer-fill me-1"></i> Imprimir
             </button>
         </div>
     </div>
 
-    <div class="card shadow receipt-card receipt-container border-0">
-        <div class="card-body p-4">
+    <!-- O COMPROVANTE -->
+    <div class="card receipt-card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-5">
             
-            <div class="receipt-header">
-                <div class="mb-2">
-                    <div class="bg-light rounded-circle d-inline-flex p-3 mb-2">
-                        <i class="bi bi-receipt fs-2 text-secondary"></i>
+            <!-- 1. Cabeçalho -->
+            <div class="text-center mb-4">
+                <div class="mb-3">
+                    <div class="bg-light rounded-circle p-3 d-inline-flex text-dark">
+                        <i class="bi bi-shop fs-1"></i>
                     </div>
                 </div>
-                
-                <h5 class="fw-bold mb-1">Comprovante de Venda</h5>
-                <p class="text-muted small mb-2">
+                <h5 class="fw-bold text-uppercase mb-1 letter-spacing-1">Comprovante de Venda</h5>
+                <p class="text-muted small mb-0">
                     @if(Model.UsuarioEmpresa != null) 
                     { 
                         @Model.UsuarioEmpresa.NomeRazao <br> 
@@ -179,91 +128,81 @@
                     }
                     else 
                     { 
-                        <span>PDV System</span> 
+                        <span>PDV System - Loja Principal</span> 
                     }
                 </p>
-                <small class="text-muted">
-                    @Model.DataEntrada.ToString("dd 'de' MMMM 'de' yyyy, HH:mm", culture)
+                <small class="text-muted d-block mt-1">
+                    @Model.DataEntrada.ToString("dd/MM/yyyy") às @Model.DataEntrada.ToString("HH:mm:ss")
                 </small>
             </div>
 
-            <div class="text-center mb-4">
-                <span class="badge @statusBadge px-3 py-2 rounded-pill mb-3">
+            <div class="dashed-divider"></div>
+
+            <!-- 2. Valor Principal -->
+            <div class="text-center my-4">
+                <span class="badge @statusBadge rounded-pill px-3 py-2 mb-2">
                     <i class="bi @statusIcon me-1"></i> @statusTexto
                 </span>
-                <h1 class="display-4 fw-bold text-dark">@Model.ValorTotal.ToString("C", culture)</h1>
+                <h1 class="display-4 fw-bold text-dark mb-0">@Model.ValorTotal.ToString("C", culture)</h1>
             </div>
 
-            <div class="dashed-line"></div>
+            <div class="dashed-divider"></div>
 
-            <div class="mb-4">
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Dados do Cliente</h6>
+            <!-- 3. Detalhes -->
+            <div class="mb-2">
+                <div class="info-row">
+                    <span>ID Transação</span>
+                    <span class="font-monospace">#@Model.Id.ToString("D6")</span>
+                </div>
                 
                 <div class="info-row">
-                    <span class="info-label">Cliente</span>
-                    <span class="info-value">
+                    <span>Cliente</span>
+                    <span>
                         @(Model.Cliente != null ? Model.Cliente.Nome : "Consumidor Final")
                     </span>
                 </div>
+                
                 @if(Model.Cliente != null && !string.IsNullOrEmpty(Model.Cliente.CPF))
                 {
                     <div class="info-row">
-                        <span class="info-label">CPF</span>
-                        <span class="info-value">@Model.Cliente.CPF</span>
+                        <span>CPF/CNPJ</span>
+                        <span>@Model.Cliente.CPF</span>
                     </div>
                 }
-            </div>
 
-            <div class="mb-4">
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Pagamento</h6>
-                
                 <div class="info-row">
-                    <span class="info-label">Forma de Pagamento</span>
-                    <span class="info-value">
+                    <span>Pagamento</span>
+                    <span>
                         @if (Model.TipoPagamento != null)
                         {
-                            <i class="bi bi-credit-card me-1"></i> @Model.TipoPagamento.Descricao
+                            <i class="bi bi-credit-card-2-front me-1 text-muted"></i> @Model.TipoPagamento.Descricao
                         }
                         else
                         {
-                            <span class="text-muted fst-italic">Não informado</span>
+                            <span class="fst-italic text-muted">Não informado</span>
                         }
                     </span>
                 </div>
-                 <div class="info-row">
-                    <span class="info-label">ID da Transação</span>
-                    <span class="info-value">#@Model.Id.ToString("D6")</span>
-                </div>
-                 @if (Model.FechamentoId != null)
+
+                @if (Model.FechamentoId != null)
                 {
                     <div class="info-row">
-                        <span class="info-label">Caixa (Fechamento)</span>
-                        <span class="info-value">#@Model.FechamentoId</span>
+                        <span>Caixa (ID)</span>
+                        <span>#@Model.FechamentoId</span>
                     </div>
                 }
             </div>
 
-            @* <div class="dashed-line"></div>
-            <div class="mb-3">
-                 <h6 class="text-uppercase text-muted small fw-bold mb-3">Itens</h6>
-                 @foreach(var item in Model.ProdutosVenda) {
-                    <div class="d-flex justify-content-between mb-2 small">
-                        <span>@item.Quantidade x @item.Produto.Nome</span>
-                        <span class="fw-bold">@item.ValorTotalItem.ToString("C", culture)</span>
-                    </div>
-                 }
-            </div> *@
-            
-
-            <div class="mt-5 text-center">
-                <p class="small text-muted mb-1">Obrigado pela preferência!</p>
-                <p class="small text-muted" style="font-size: 0.7rem;">Gerado eletronicamente em @DateTime.Now.ToString("g")</p>
-                
-                <div class="mt-3 opacity-50">
-                   <i class="bi bi-upc-scan fs-1"></i>
-                </div>
+            <!-- 4. Rodapé -->
+            <div class="mt-5 text-center opacity-50">
+                <i class="bi bi-upc-scan fs-1"></i>
+                <p class="small mt-2 mb-0 text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 2px;">Obrigado pela preferência</p>
             </div>
 
         </div>
+    </div>
+    
+    <div class="text-center mt-3 no-print">
+        <small class="text-muted">Este documento não possui valor fiscal.</small>
     </div>
 </div>

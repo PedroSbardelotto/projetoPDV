@@ -14,6 +14,8 @@ namespace PDV.Models
         [Display(Name = "Preço")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Preco { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Custo { get; set; }
         public Boolean Status { get; set; }
         [Display(Name = "Criado em:")]
         public DateTime DataEntrada { get; set; }

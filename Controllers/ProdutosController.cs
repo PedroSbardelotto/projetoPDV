@@ -57,7 +57,7 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Nome,Quantidade,QuantidadeMinima,Preco,CategoriaId")] Produto produto)
+        public async Task<IActionResult> Create([Bind("Nome,Quantidade,QuantidadeMinima,Preco,CategoriaId,Custo")] Produto produto)
         {
             if (ModelState.IsValid)
             {
@@ -95,7 +95,7 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Quantidade,QuantidadeMinima,Preco,Status,DataEntrada,DataAtualizacao,CategoriaId")] Produto produto)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Quantidade,QuantidadeMinima,Preco,Status,DataEntrada,DataAtualizacao,CategoriaId,Custo")] Produto produto)
         {
             if (id != produto.Id)
             {
