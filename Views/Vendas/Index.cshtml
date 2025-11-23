@@ -1,68 +1,101 @@
 ﻿@model IEnumerable<PDV.Models.Vendas>
+@using System.Globalization
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Gestão de Vendas";
+    // Define a cultura pt-BR para formatar a moeda corretamente
+    var culture = new CultureInfo("pt-BR");
 }
 
-<h1>Vendas</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">@ViewData["Title"]</h1>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="bi bi-cart-plus-fill me-2"></i>Nova Venda
+    </a>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ValorTotal)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataEntrada)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataAtualizacao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TipoPagamento)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Cliente)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Fechamento)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ValorTotal)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataEntrada)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataAtualizacao)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TipoPagamento.Descricao)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Cliente.CPF)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Fechamento.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Histórico de Vendas</h5>
+        <!-- Botão opcional de Relatórios ou Filtros, caso queira adicionar futuramente -->
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr class="text-center">
+                        <th>@Html.DisplayNameFor(model => model.DataEntrada)</th>
+                        <th>@Html.DisplayNameFor(model => model.Cliente)</th>
+                        <th>@Html.DisplayNameFor(model => model.TipoPagamento)</th>
+                        <th>@Html.DisplayNameFor(model => model.ValorTotal)</th>
+                        <th>@Html.DisplayNameFor(model => model.Status)</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center">@Html.DisplayFor(modelItem => item.DataEntrada)</td>
+
+                            <td class="text-center">
+                                @if (item.Cliente != null)
+                                {
+                                    <!-- Exibindo CPF ou Nome, dependendo do que preferir -->
+                                    <i class="bi bi-person me-1 text-muted"></i>
+ 
+                                    @Html.DisplayFor(modelItem => item.Cliente.Nome)
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Consumidor Final</span>
+                                }
+                            </td>
+
+                            <td class="text-center">@Html.DisplayFor(modelItem => item.TipoPagamento.Descricao)</td>
+
+                            <td class="text-center fw-bold">@item.ValorTotal.ToString("C", culture)</td>
+
+                            <td class="text-center">
+                                @if (item.Status == 1) // Assumindo que True = Venda Concluída/Ativa
+                                {
+                                    <span class="badge bg-success">Concluída</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Pendente</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Detalhes">
+                                    <i class="bi bi-search"></i>
+                                </a>
+
+                                @if (item.Status == 1)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal"
+                                            data-bs-id="@item.Id"
+                                            data-bs-name="Venda #@item.Id"
+                                            data-nome-base="venda"
+                                            data-bs-url="@Url.Action("Delete", "Vendas")">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Mantendo as parciais para os Modais funcionarem -->
+<partial name="_DeleteModal" />
+<partial name="_ActivateModal" />

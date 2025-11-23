@@ -1,72 +1,622 @@
-﻿@model PDV.Models.Fechamento
+﻿@* @model PDV.Models.ViewModels.FechamentoDetailsViewModel
 @using System.Globalization
 
 @{
     ViewData["Title"] = "Detalhes do Fechamento";
     var culture = new CultureInfo("pt-BR");
+
+    var vendasFinalizadas = Model.Vendas.Where(v => v.Status == 1).ToList();
+    var vendasFinalizadasEmDinheiro = vendasFinalizadas.Where(v => v.TipoPagamento.Descricao == "Dinheiro").ToList();
+    var totalFaturado = vendasFinalizadas.Sum(v => v.ValorTotal);
+    var totalRecebido = vendasFinalizadasEmDinheiro.Sum(v => v.ValorTotal);
+
+    var vendasPendentes = Model.Vendas.Where(v => v.Status == 2).ToList();
+    var totalEmHaver = vendasPendentes.Sum(v => v.ValorTotal);
+
+    var valorAbertura = Model.Fechamento.ValorAbertura;
+
+    var valorEmCaixaEsperado = valorAbertura + totalRecebido;
+
+    var estaFechado = Model.Fechamento.DataFechamento.HasValue;
+
+    decimal diferenca = 0;
+    if (estaFechado)
+    {
+        diferenca = Model.Fechamento.ValorFechamento - valorEmCaixaEsperado;
+    }
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
+<div class="container-fluid py-4">
 
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h4 class="mb-0">@ViewData["Title"]</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">@ViewData["Title"]</h2>
+            <p class="text-muted mb-0">
+                Aberto em: @Model.Fechamento.DataAbertura.ToString("f", culture)
+            </p>
+        </div>
+        <div>
+            @if (estaFechado)
+            {
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    <i class="bi bi-lock-fill me-2"></i>Encerrado em @Model.Fechamento.DataFechamento.Value.ToString("f", culture)
+                </span>
+            }
+            else
+            {
+                <span class="badge bg-success fs-6 px-3 py-2">
+                    <i class="bi bi-unlock-fill me-2"></i>Caixa Aberto
+                </span>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-4 border-primary">
+                <div class="card-body">
+                    <small class="text-muted fw-bold text-uppercase">Abertura</small>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 text-primary">
+                            <i class="bi bi-box-arrow-in-down fs-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold">@valorAbertura.ToString("C", culture)</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="card-body">
-                <dl class="row">
-
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DataAbertura)</dt>
-                    <dd class="col-sm-9">@Model.DataAbertura.ToString("f", culture)</dd>
-
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ValorAbertura)</dt>
-                    <dd class="col-sm-9">@Model.ValorAbertura.ToString("C", culture)</dd>
-
-                    <hr class="my-3">
-
-                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DataFechamento)</dt>
-                    <dd class="col-sm-9">
-                        @if (Model.DataFechamento.HasValue)
-                        {
-                            <span>@Model.DataFechamento.Value.ToString("f", culture)</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-success">CAIXA ABERTO</span>
-                        }
-                    </dd>
-
-                    @if (Model.DataFechamento.HasValue)
-                    {
-                        <dt class="col-sm-3">Valor Fechamento</dt>
-                        <dd class="col-sm-9">
-                            <span>@Model.ValorFechamento.ToString("C", culture)</span>
-                        </dd>
-                    }
-
-                    @if (Model.DataFechamento.HasValue)
-                    {
-                        var diferenca = Model.ValorFechamento - Model.ValorAbertura;
-                        var cor = diferenca > 0 ? "text-success" : (diferenca < 0 ? "text-danger" : "text-muted");
-                        <dt class="col-sm-3">Diferença</dt>
-                        <dd class="col-sm-9">
-
-                            <span class="fw-bold @cor">
-                                @diferenca.ToString("C", culture)
-                                @(diferenca > 0 ? "(Sobra)" : (diferenca < 0 ? "(Quebra)" : ""))
-                            </span>
-                        </dd>
-                    }
-
-                </dl>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-4 border-success">
+                <div class="card-body">
+                    <small class="text-muted fw-bold text-uppercase">Vendas Recebidas</small>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 text-success">
+                            <i class="bi bi-check-lg fs-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold text-success">@totalFaturado.ToString("C", culture)</h3>
+                            <small class="text-muted">@vendasFinalizadas.Count vendas finalizadas</small>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="card-footer d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Voltar à Lista
-                </a>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-4 border-warning">
+                <div class="card-body">
+                    <small class="text-muted fw-bold text-uppercase">Em "Caixinha" (Pendências)</small>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3 text-warning">
+                            <i class="bi bi-journal-text fs-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold text-warning">@totalEmHaver.ToString("C", culture)</h3>
+                            <small class="text-muted">@vendasPendentes.Count vendas a receber</small>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div class="col-md-3">
+            @if (estaFechado)
+            {
+                // Lógica visual para sobra ou falta
+                var colorClass = diferenca >= 0 ? "success" : "danger";
+                var iconClass = diferenca >= 0 ? "bi-check-circle" : "bi-exclamation-triangle";
+                var titulo = diferenca == 0 ? "Caixa Batido" : (diferenca > 0 ? "Sobra de Caixa" : "Quebra de Caixa");
+
+                <div class="card shadow-sm h-100 border-start border-4 border-@colorClass">
+                    <div class="card-body">
+                        <small class="text-muted fw-bold text-uppercase">Resultado (@titulo)</small>
+                        <div class="d-flex align-items-center mt-2">
+                            <div class="rounded-circle bg-@colorClass bg-opacity-10 p-3 me-3 text-@colorClass">
+                                <i class="bi @iconClass fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-0 fw-bold text-@colorClass">@diferenca.ToString("C", culture)</h4>
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    (Esperado: @valorEmCaixaEsperado.ToString("C", culture))
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card shadow-sm h-100 bg-light border-0 dashed-border">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center text-muted text-center">
+                        <i class="bi bi-calculator fs-3 mb-1"></i>
+                        <span class="fw-bold">Esperado na Gaveta:</span>
+                        <span class="fs-5 text-dark">@valorEmCaixaEsperado.ToString("C", culture)</span>
+                        <small>(Sem contar caixinhas)</small>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-secondary"><i class="bi bi-receipt me-2"></i>Extrato de Movimentação</h5>
+            <div>
+                <span class="badge bg-light text-dark border me-1">Total: @Model.Vendas.Count</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Vendas != null && Model.Vendas.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Horário</th>
+                                <th>Cliente / Status</th>
+                                <th>Pagamento</th>
+                                <th class="text-end pe-4">Valor</th>
+                                <th class="text-center">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var venda in Model.Vendas.OrderByDescending(v => v.DataEntrada))
+                            {
+                                // Define estilos da linha baseado no status
+                                bool isCaixinha = venda.Status == 2;
+                                string rowClass = isCaixinha ? "bg-warning bg-opacity-10" : "";
+                                string valorColor = isCaixinha ? "text-warning" : "text-success";
+
+                                <tr class="@rowClass">
+                                    <td class="ps-4 fw-bold text-secondary">#@venda.Id</td>
+                                    <td>@venda.DataEntrada.ToString("HH:mm")</td>
+
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            @if (venda.Cliente != null)
+                                            {
+                                                <span class="fw-bold text-dark">@venda.Cliente.Nome</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">Consumidor Final</span>
+                                            }
+
+                                            @if (isCaixinha)
+                                            {
+                                                <span class="badge bg-warning text-dark mt-1 w-auto" style="width: fit-content;">
+                                                    <i class="bi bi-clock-history me-1"></i>Em Haver (Caixinha)
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success bg-opacity-25 text-success mt-1 border border-success" style="width: fit-content;">
+                                                    <i class="bi bi-check-all me-1"></i>Finalizado
+                                                </span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (isCaixinha)
+                                        {
+                                            <span class="text-muted small">--</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @(venda.TipoPagamento?.Descricao ?? "N/A")
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end pe-4 fw-bold @valorColor">
+                                        @venda.ValorTotal.ToString("C", culture)
+                                    </td>
+
+                                    <td class="text-center">
+                                        <a asp-controller="Vendas" asp-action="Details" asp-route-id="@venda.Id"
+                                           class="btn btn-sm btn-outline-secondary" title="Ver Detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox text-muted opacity-50" style="font-size: 3rem;"></i>
+                    <p class="mt-3 text-muted">Nenhuma movimentação neste período.</p>
+                </div>
+            }
+        </div>
+        <div class="card-footer bg-white py-3">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Voltar à Lista
+            </a>
         </div>
     </div>
 </div>
+
+<style>
+    .dashed-border {
+        border: 2px dashed #dee2e6 !important;
+    }
+</style> *@
+
+
+
+
+@model PDV.Models.ViewModels.FechamentoDetailsViewModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Detalhes do Fechamento";
+    var culture = new CultureInfo("pt-BR");
+
+    var vendasFinalizadas = Model.Vendas.Where(v => v.Status == 1).ToList();
+    var vendasFinalizadasEmDinheiro = vendasFinalizadas.Where(v => v.TipoPagamento.Descricao == "Dinheiro").ToList();
+    var totalFaturado = vendasFinalizadas.Sum(v => v.ValorTotal);
+    var totalRecebido = vendasFinalizadasEmDinheiro.Sum(v => v.ValorTotal);
+
+    var vendasPendentes = Model.Vendas.Where(v => v.Status == 2).ToList();
+    var totalEmHaver = vendasPendentes.Sum(v => v.ValorTotal);
+
+    var valorAbertura = Model.Fechamento.ValorAbertura;
+    var valorEmCaixaEsperado = valorAbertura + totalRecebido;
+    var estaFechado = Model.Fechamento.DataFechamento.HasValue;
+
+    decimal diferenca = 0;
+    if (estaFechado)
+    {
+        diferenca = Model.Fechamento.ValorFechamento - valorEmCaixaEsperado;
+    }
+}
+
+<style>
+    .dashed-border {
+        border: 2px dashed #dee2e6 !important;
+    }
+
+    /* --- BOTÃO DE STATUS COM HOVER --- */
+    .btn-status-toggle {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        min-width: 160px; /* Largura fixa para não "pular" ao trocar texto */
+    }
+
+        /* Estado Normal (Verde) */
+        .btn-status-toggle .text-hover {
+            display: none;
+        }
+
+        /* Estado Hover (Vermelho) */
+        .btn-status-toggle:hover {
+            background-color: #dc3545 !important; /* Vermelho Danger */
+            border-color: #dc3545 !important;
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
+            .btn-status-toggle:hover .text-normal {
+                display: none;
+            }
+
+            .btn-status-toggle:hover .text-hover {
+                display: inline-block;
+                animation: fadeIn 0.3s;
+            }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">@ViewData["Title"]</h2>
+            <p class="text-muted mb-0">
+                Aberto em: @Model.Fechamento.DataAbertura.ToString("f", culture)
+            </p>
+        </div>
+        <div>
+            @if (estaFechado)
+            {
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    <i class="bi bi-lock-fill me-2"></i>Encerrado em @Model.Fechamento.DataFechamento.Value.ToString("f", culture)
+                </span>
+            }
+            else
+            {
+                <button type="button"
+                        class="btn btn-success btn-status-toggle fs-6 px-3 py-2 fw-bold"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalConfirmarFechamento">
+
+                    <span class="text-normal">
+                        <i class="bi bi-unlock-fill me-2"></i>Caixa Aberto
+                    </span>
+
+                    <span class="text-hover">
+                        <i class="bi bi-door-closed-fill me-2"></i>Fechar Agora?
+                    </span>
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-4 border-primary">
+                <div class="card-body">
+                    <small class="text-muted fw-bold text-uppercase">Abertura</small>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 text-primary">
+                            <i class="bi bi-box-arrow-in-down fs-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold">@valorAbertura.ToString("C", culture)</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-4 border-success">
+                <div class="card-body">
+                    <small class="text-muted fw-bold text-uppercase">Vendas Recebidas</small>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 text-success">
+                            <i class="bi bi-check-lg fs-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold text-success">@totalFaturado.ToString("C", culture)</h3>
+                            <small class="text-muted">@vendasFinalizadas.Count vendas finalizadas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-4 border-warning">
+                <div class="card-body">
+                    <small class="text-muted fw-bold text-uppercase">Em "Caixinha" (Pendências)</small>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3 text-warning">
+                            <i class="bi bi-journal-text fs-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold text-warning">@totalEmHaver.ToString("C", culture)</h3>
+                            <small class="text-muted">@vendasPendentes.Count vendas a receber</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            @if (estaFechado)
+            {
+                var colorClass = diferenca >= 0 ? "success" : "danger";
+                var iconClass = diferenca >= 0 ? "bi-check-circle" : "bi-exclamation-triangle";
+                var titulo = diferenca == 0 ? "Caixa Batido" : (diferenca > 0 ? "Sobra de Caixa" : "Quebra de Caixa");
+
+                <div class="card shadow-sm h-100 border-start border-4 border-@colorClass">
+                    <div class="card-body">
+                        <small class="text-muted fw-bold text-uppercase">Resultado (@titulo)</small>
+                        <div class="d-flex align-items-center mt-2">
+                            <div class="rounded-circle bg-@colorClass bg-opacity-10 p-3 me-3 text-@colorClass">
+                                <i class="bi @iconClass fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-0 fw-bold text-@colorClass">@diferenca.ToString("C", culture)</h4>
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    (Esperado: @valorEmCaixaEsperado.ToString("C", culture))
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card shadow-sm h-100 bg-light border-0 dashed-border">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center text-muted text-center">
+                        <i class="bi bi-calculator fs-3 mb-1"></i>
+                        <span class="fw-bold">Esperado na Gaveta:</span>
+                        <span class="fs-5 text-dark">@valorEmCaixaEsperado.ToString("C", culture)</span>
+                        <small>(Sem contar caixinhas)</small>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-secondary"><i class="bi bi-receipt me-2"></i>Extrato de Movimentação</h5>
+            <div>
+                <span class="badge bg-light text-dark border me-1">Total: @Model.Vendas.Count</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Vendas != null && Model.Vendas.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Horário</th>
+                                <th>Cliente / Status</th>
+                                <th>Pagamento</th>
+                                <th class="text-end pe-4">Valor</th>
+                                <th class="text-center">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var venda in Model.Vendas.OrderByDescending(v => v.DataEntrada))
+                            {
+                                bool isCaixinha = venda.Status == 2;
+                                string rowClass = isCaixinha ? "bg-warning bg-opacity-10" : "";
+                                string valorColor = isCaixinha ? "text-warning" : "text-success";
+
+                                <tr class="@rowClass">
+                                    <td class="ps-4 fw-bold text-secondary">#@venda.Id</td>
+                                    <td>@venda.DataEntrada.ToString("HH:mm")</td>
+
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            @if (venda.Cliente != null)
+                                            {
+                                                <span class="fw-bold text-dark">@venda.Cliente.Nome</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">Consumidor Final</span>
+                                            }
+
+                                            @if (isCaixinha)
+                                            {
+                                                <span class="badge bg-warning text-dark mt-1 w-auto" style="width: fit-content;">
+                                                    <i class="bi bi-clock-history me-1"></i>Em Haver (Caixinha)
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success bg-opacity-25 text-success mt-1 border border-success" style="width: fit-content;">
+                                                    <i class="bi bi-check-all me-1"></i>Finalizado
+                                                </span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (isCaixinha)
+                                        {
+                                            <span class="text-muted small">--</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @(venda.TipoPagamento?.Descricao ?? "N/A")
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end pe-4 fw-bold @valorColor">
+                                        @venda.ValorTotal.ToString("C", culture)
+                                    </td>
+
+                                    <td class="text-center">
+                                        <a asp-controller="Vendas" asp-action="Details" asp-route-id="@venda.Id"
+                                           class="btn btn-sm btn-outline-secondary" title="Ver Detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox text-muted opacity-50" style="font-size: 3rem;"></i>
+                    <p class="mt-3 text-muted">Nenhuma movimentação neste período.</p>
+                </div>
+            }
+        </div>
+        <div class="card-footer bg-white py-3">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Voltar à Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfirmarFechamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="FecharCaixa" asp-controller="Home" method="post" id="form-fechar-caixa-details">
+                <div class="modal-header bg-danger text-white">
+                    <h6 class="modal-title"><i class="bi bi-door-closed-fill me-2"></i>Encerrar Caixa</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-calculator fs-1 text-secondary opacity-25"></i>
+                        <p class="text-muted small mt-2">
+                            Confira o dinheiro físico na gaveta e informe o valor total abaixo.
+                        </p>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="number" step="0.01" class="form-control form-control-lg text-end fw-bold fs-3"
+                               id="valorFechamento" placeholder="0,00" name="ValorFechamento" required autofocus>
+                        <label for="valorFechamento">Valor em Gaveta (R$)</label>
+                    </div>
+
+                    <div class="alert alert-warning small d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill me-2 fs-4"></i>
+                        <div>
+                            <strong>Lembrete:</strong> Não inclua comprovantes de cartão ou notas promissórias (fiado) nesta contagem. Apenas dinheiro.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger fw-bold" id="btn-confirmar-fechar-details">
+                        <i class="bi bi-check-circle-fill me-2"></i>Confirmar Fechamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Script para desabilitar botão ao enviar o fechamento
+        const formFechar = document.getElementById('form-fechar-caixa-details');
+        if (formFechar) {
+            formFechar.addEventListener('submit', function () {
+                const btn = document.getElementById('btn-confirmar-fechar-details');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando...';
+            });
+        }
+
+        // Focar no input ao abrir o modal
+        const modalFechamento = document.getElementById('modalConfirmarFechamento');
+        modalFechamento.addEventListener('shown.bs.modal', () => {
+            document.getElementById('valorFechamento').focus();
+        });
+    </script>
+}

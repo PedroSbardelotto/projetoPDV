@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PDV.Data;
+using PDV.Enums;
 using PDV.Models;
+using PDV.Models.ViewModels;
 
 namespace PDV.Controllers
 {
@@ -35,14 +37,16 @@ namespace PDV.Controllers
             {
                 return NotFound();
             }
-
-            var fechamento = await _context.Fechamento
+            FechamentoDetailsViewModel fechamento = new FechamentoDetailsViewModel();
+            fechamento.Fechamento = await _context.Fechamento
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (fechamento == null)
             {
                 return NotFound();
             }
-
+            fechamento.Vendas = await _context.Vendas.Include(v=> v.TipoPagamento).Include(v=> v.Cliente)
+                .Where(v => v.FechamentoId == id).ToListAsync();
+            fechamento.VendasTotal = fechamento.Vendas.Where(v => v.Status == (short)Situacao.Finalizado).Sum(v=> v.ValorTotal);
             return View(fechamento);
         }
 

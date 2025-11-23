@@ -66,25 +66,65 @@ namespace PDV.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ValorTotal,TipoPagamentoId,ClienteId,FechamentoId,ProdutosVenda")] Vendas vendas)
         {
-                DateTime dtAtual = DateTime.Now;
+            // 1. Validação do Fechamento (Segurança para não quebrar se não tiver caixa aberto)
+            Fechamento objFechamento = await _context.Fechamento
+                                                     .Where(f => f.DataFechamento == null)
+                                                     .FirstOrDefaultAsync();
 
-                Fechamento objFechamento = await _context.Fechamento.Where(f => f.DataFechamento == null).FirstOrDefaultAsync();
+            if (objFechamento == null)
+            {
+                TempData["Erro"] = "Não é possível realizar venda. O caixa está fechado!";
+                return RedirectToAction("Index", "Home");
+            }
 
-                if (vendas.ClienteId != null)
+            // 2. A Validação que você pediu (Valor Zerado ou Negativo)
+            // Verifica se é menor ou igual a zero
+            if (vendas.ValorTotal <= 0)
+            {
+                TempData["Erro"] = "O valor da venda não pode ser R$ 0,00 ou negativo. Adicione produtos ao carrinho.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            DateTime dtAtual = DateTime.Now;
+
+            if (vendas.ClienteId != null)
+            {
+                vendas.Status = (short)Situacao.Pendente;
+                vendas.TipoPagamentoId = null;
+            }
+            else
+            {
+                // Se não tem cliente e não é pendente, precisa ter Tipo de Pagamento
+                if (vendas.TipoPagamentoId == null)
                 {
-                    vendas.Status = (short)Situacao.Pendente;
-                    vendas.TipoPagamentoId = null;
+                    TempData["Erro"] = "Selecione uma forma de pagamento.";
+                    return RedirectToAction("Index", "Home");
                 }
-                else
-                    vendas.Status = (short)Situacao.Finalizado;
+                vendas.Status = (short)Situacao.Finalizado;
+            }
 
-                vendas.FechamentoId = objFechamento.Id;
-                vendas.DataEntrada = dtAtual;
-                vendas.DataAtualizacao = dtAtual;
-                vendas.ValorTotal = Convert.ToDecimal(vendas.ValorTotal);
+            vendas.FechamentoId = objFechamento.Id;
+            vendas.DataEntrada = dtAtual;
+            vendas.DataAtualizacao = dtAtual;
 
+            // Convert.ToDecimal geralmente é desnecessário se a propriedade já for decimal, 
+            // mas se estiver vindo string, o ModelBinder já tenta converter antes. 
+            // Deixei comentado, use apenas se estritamente necessário por formatação específica.
+            // vendas.ValorTotal = Convert.ToDecimal(vendas.ValorTotal); 
+
+            try
+            {
                 _context.Add(vendas);
                 await _context.SaveChangesAsync();
+
+                // Mensagem de Sucesso (Opcional, mas recomendado)
+                TempData["Sucesso"] = "Venda realizada com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                // Logar o erro aqui se possível
+                TempData["Erro"] = "Erro ao salvar a venda no banco de dados.";
+            }
 
             return RedirectToAction("Index", "Home");
         }

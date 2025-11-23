@@ -67,6 +67,24 @@
         </nav>
 
         <main role="main" class="flex-grow-1 p-4" style="max-height: 100vh; overflow-y: auto;">
+            <!-- CÓDIGO PADRÃO PARA AS MENSAGENS ( SUCESSO | ERRO )-->
+            <div class="container mt-3">
+                @if (TempData["Sucesso"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> <strong>Sucesso!</strong> @TempData["Sucesso"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["Erro"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>Erro:</strong> @TempData["Erro"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+            </div>
             @RenderBody()
         </main>
 

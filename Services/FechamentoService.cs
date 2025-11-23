@@ -24,7 +24,7 @@ namespace PDV.Services
         public void FecharCaixa(decimal ValorFechamento)
         {
             var fechamentoCaixa = _context.Fechamento
-            .Where(f => f.DataAbertura.Date == DateTime.Today)
+            .Where(f => f.DataAbertura.Date == DateTime.Today && f.DataFechamento == null)
             .SingleOrDefault();
 
             if (fechamentoCaixa == null) { return; }
