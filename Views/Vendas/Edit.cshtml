@@ -1,69 +1,122 @@
 ﻿@model PDV.Models.Vendas
+@using System.Globalization
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Finalizar Venda";
+    var culture = new CultureInfo("pt-BR");
 }
 
-<h1>Edit</h1>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
 
-<h4>Vendas</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="ValorTotal" class="control-label"></label>
-                <input asp-for="ValorTotal" class="form-control" />
-                <span asp-validation-for="ValorTotal" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataEntrada" class="control-label"></label>
-                <input asp-for="DataEntrada" class="form-control" />
-                <span asp-validation-for="DataEntrada" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataAtualizacao" class="control-label"></label>
-                <input asp-for="DataAtualizacao" class="form-control" />
-                <span asp-validation-for="DataAtualizacao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TipoPagamentoId" class="control-label"></label>
-                <select asp-for="TipoPagamentoId" class="form-control" asp-items="ViewBag.TipoPagamentoId"></select>
-                <span asp-validation-for="TipoPagamentoId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ClienteId" class="control-label"></label>
-                <select asp-for="ClienteId" class="form-control" asp-items="ViewBag.ClienteId"></select>
-                <span asp-validation-for="ClienteId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UsuarioEmpresaId" class="control-label"></label>
-                <select asp-for="UsuarioEmpresaId" class="form-control" asp-items="ViewBag.UsuarioEmpresaId"></select>
-                <span asp-validation-for="UsuarioEmpresaId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FechamentoId" class="control-label"></label>
-                <select asp-for="FechamentoId" class="form-control" asp-items="ViewBag.FechamentoId"></select>
-                <span asp-validation-for="FechamentoId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+            <form asp-action="Edit">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="DataEntrada" />
+                <input type="hidden" asp-for="ClienteId" />
+                <input type="hidden" asp-for="UsuarioEmpresaId" />
+                <input type="hidden" asp-for="FechamentoId" />
+                <input type="hidden" asp-for="ValorTotal" />
+
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 text-success">
+                                <i class="bi bi-cash-coin fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted text-uppercase small fw-bold mb-1">Venda #@Model.Id</h6>
+                                <h4 class="fw-bold text-dark mb-0">Finalizar Pagamento</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+
+                        <div class="p-4 rounded-4 bg-light border border-light text-center mb-4">
+                            <small class="text-muted text-uppercase fw-bold mb-1 d-block">Valor Total a Pagar</small>
+                            <h1 class="display-4 fw-bold text-success mb-0">
+                                @Model.ValorTotal.ToString("C", culture)
+                            </h1>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-md-7">
+                                <h6 class="fw-bold text-secondary small text-uppercase mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>Detalhes da Venda
+                                </h6>
+
+                                <div class="vstack gap-3">
+                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                        <span class="text-muted">Data da Venda</span>
+                                        <span class="fw-bold text-dark">@Model.DataEntrada.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                        <span class="text-muted">Cliente</span>
+                                        <span class="fw-bold text-dark">
+                                            @(Model.Cliente != null ? Model.Cliente.Nome : "Consumidor Final")
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between pt-1">
+                                        <span class="text-muted">Status Atual</span>
+                                        @if(Model.Status == 2)
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 d-flex align-items-center justify-content-center">Pendente</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary rounded-pill px-3">Finalizado</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5">
+                                <div class="h-100 p-4 rounded-4 border border-success border-opacity-25 bg-success bg-opacity-10">
+                                    <label asp-for="TipoPagamentoId" class="form-label fw-bold text-success mb-2">
+                                        <i class="bi bi-credit-card me-2"></i>Forma de Pagamento
+                                    </label>
+
+                                    <div class="bg-white p-1 rounded-3 shadow-sm mb-3">
+                                        <select asp-for="TipoPagamentoId" class="form-select border-0 form-select-lg fw-bold text-dark" asp-items="ViewBag.TipoPagamentoId">
+                                            <option value="">Selecione...</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="TipoPagamentoId" class="text-danger small d-block mb-3"></span>
+
+                                    <div class="form-check mb-4">
+                                        <input class="form-check-input" type="checkbox" id="checkFinalizar" checked>
+                                        <label class="form-check-label small text-muted" for="checkFinalizar">
+                                            Marcar venda como concluída
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success w-100 py-3 fw-bold rounded-3 shadow-sm text-uppercase">
+                                        <i class="bi bi-check-lg me-2"></i>Confirmar Pagamento
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer bg-white border-top p-3 text-center">
+                        <a asp-action="Index" class="text-decoration-none text-muted small fw-bold">
+                            <i class="bi bi-arrow-left me-1"></i> Cancelar e Voltar
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

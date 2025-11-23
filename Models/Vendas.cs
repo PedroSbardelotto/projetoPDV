@@ -15,14 +15,14 @@ namespace PDV.Models
         public DateTime DataAtualizacao { get; set; }
         public int? TipoPagamentoId { get; set; }
         [Display(Name = "Forma de Pagamento")]
-        public TipoPagamento TipoPagamento { get; set; }
+        public TipoPagamento? TipoPagamento { get; set; }
         public int? ClienteId { get; set; }
-        public Cliente Cliente { get; set; }
+        public Cliente? Cliente { get; set; }
         public int? UsuarioEmpresaId { get; set; }
-        public UsuarioEmpresa UsuarioEmpresa { get; set; }
+        public UsuarioEmpresa? UsuarioEmpresa { get; set; }
         public int FechamentoId { get; set; }
-        public Fechamento Fechamento { get; set; }
+        public Fechamento? Fechamento { get; set; }
 
-        public List<ProdutosVenda> ProdutosVenda { get; set; }
+        public List<ProdutosVenda>? ProdutosVenda { get; set; }
     }
 }

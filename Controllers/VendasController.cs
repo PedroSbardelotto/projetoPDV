@@ -178,15 +178,22 @@ namespace PDV.Controllers
                 return NotFound();
             }
 
-            var vendas = await _context.Vendas.FindAsync(id);
+            // ADICIONEI OS INCLUDES PARA TRAZER OS DADOS DE VISUALIZAÇÃO
+            var vendas = await _context.Vendas
+                .Include(v => v.Cliente)
+                .Include(v => v.TipoPagamento)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
             if (vendas == null)
             {
                 return NotFound();
             }
-            ViewData["ClienteId"] = new SelectList(_context.Cliente, "Id", "CNPJ", vendas.ClienteId);
-            ViewData["FechamentoId"] = new SelectList(_context.Fechamento, "Id", "Id", vendas.FechamentoId);
+
+            // Apenas o Tipo de Pagamento precisa ser um Dropdown selecionável
             ViewData["TipoPagamentoId"] = new SelectList(_context.TipoPagamento, "Id", "Descricao", vendas.TipoPagamentoId);
-            ViewData["UsuarioEmpresaId"] = new SelectList(_context.UsuarioEmpresa, "Id", "CNPJ", vendas.UsuarioEmpresaId);
+
+            // Removemos os outros ViewDatas que estavam causando o erro ou eram desnecessários para essa etapa
+
             return View(vendas);
         }
 
@@ -195,7 +202,7 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ValorTotal,Status,DataEntrada,DataAtualizacao,TipoPagamentoId,ClienteId,UsuarioEmpresaId,FechamentoId")] Vendas vendas)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ValorTotal,Status,DataEntrada,DataAtualizacao,TipoPagamentoId,ClienteId,FechamentoId")] Vendas vendas)
         {
             if (id != vendas.Id)
             {
