@@ -19,6 +19,7 @@ namespace PDV.Models
         public DateTime DataEntrada { get; set; }
         [Display(Name = "Atualizado em:")]
         public DateTime DataAtualizacao { get; set; }
+        public virtual ICollection<Vendas> Vendas { get; set; }
 
     }
 }

@@ -5,7 +5,6 @@
 }
 
 <div class="container-fluid py-4">
-    <!-- Header da Página -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-0">Clientes</h2>
@@ -16,7 +15,6 @@
         </a>
     </div>
 
-    <!-- Card da Tabela -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -26,14 +24,24 @@
                             <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Nome</th>
                             <th class="py-3 text-uppercase text-muted small fw-bold border-0">Contato</th>
                             <th class="py-3 text-uppercase text-muted small fw-bold border-0">Documento</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0">Situação</th>
                             <th class="pe-4 py-3 text-end text-uppercase text-muted small fw-bold border-0">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            // Gera cor aleatória ou fixa para o avatar baseado na letra
                             var initial = item.Nome?.Substring(0, 1).ToUpper() ?? "?";
+
+                            // LÓGICA DE PENDÊNCIA
+                            // Verifica se existe alguma venda que NÃO esteja com status 'Pago' ou 'Finalizado'
+                            // Ajuste a string "Pago" conforme está salvo no seu banco de dados
+                            bool temPendencia = item.Vendas != null && item.Vendas.Any(v => v.Status == 2);
+
+                            // Define cores e textos
+                            string statusClass = temPendencia ? "bg-danger text-danger" : "bg-success text-success";
+                            string statusIcon = temPendencia ? "bi-exclamation-circle-fill" : "bi-check-circle-fill";
+                            string statusText = temPendencia ? "Pendência" : "Em Dia";
 
                             <tr class="border-bottom border-light">
                                 <td class="ps-4 py-3">
@@ -65,6 +73,21 @@
                                         @item.CPF
                                     </span>
                                 </td>
+
+                                <td>
+                                    <div class="d-inline-flex align-items-center px-3 py-1 rounded-pill border @statusClass bg-opacity-10 border-opacity-10">
+                                        <i class="bi @statusIcon me-2"></i>
+                                        <span class="fw-bold small">@statusText</span>
+                                    </div>
+                                    @if (temPendencia)
+                                    {
+                                        // Opcional: Mostra quantas contas estão em aberto
+                                        <div class="small text-muted mt-1 ms-1" style="font-size: 0.75rem;">
+                                            @item.Vendas.Count(v => v.Status == 2) conta(s) aberta(s)
+                                        </div>
+                                    }
+                                </td>
+
                                 <td class="pe-4 text-end">
                                     <div class="btn-group">
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary" title="Editar">

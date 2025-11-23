@@ -24,9 +24,11 @@ namespace PDV.Controllers
         // GET: Clientes
         public async Task<IActionResult> Index()
         {
-              return _context.Cliente != null ? 
-                          View(await _context.Cliente.ToListAsync()) :
-                          Problem("Entity set 'PDVContext.Cliente'  is null.");
+            return _context.Cliente != null ?
+                View(await _context.Cliente
+                    .Include(c => c.Vendas) // Carrega as vendas para verificarmos pendências
+                    .ToListAsync()) :
+                Problem("Entity set 'PDVContext.Cliente' is null.");
         }
 
         // GET: Clientes/Details/5
@@ -44,7 +46,7 @@ namespace PDV.Controllers
                 return NotFound();
             }
 
-            ClienteVM.Pendencias = await _context.Vendas.Where(v => v.ClienteId == ClienteVM.Cliente.Id).Where(v=> v.Status != 1).ToListAsync();
+            ClienteVM.Pendencias = await _context.Vendas.Where(v => v.ClienteId == ClienteVM.Cliente.Id).Where(v => v.Status != 1).ToListAsync();
             ViewBag.TipoPagamentos = await _context.TipoPagamento.ToListAsync();
             return View(ClienteVM);
         }
@@ -167,7 +169,7 @@ namespace PDV.Controllers
                 // Usei AnyAsync para performance (para no primeiro que encontrar)
                 bool possuiPendencias = await _context.Vendas
                     .Where(v => v.ClienteId == id)
-                    .Where(v => v.Status == (short)Situacao.Pendente) 
+                    .Where(v => v.Status == (short)Situacao.Pendente)
                     .AnyAsync();
 
                 if (possuiPendencias)
@@ -188,9 +190,9 @@ namespace PDV.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost] 
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PagarPendencia(int id, int tipoPagamentoId) 
+        public async Task<IActionResult> PagarPendencia(int id, int tipoPagamentoId)
         {
             // Busca a venda
             Vendas pendencia = await _context.Vendas.FindAsync(id);
@@ -220,7 +222,7 @@ namespace PDV.Controllers
         }
         private bool ClienteExists(int id)
         {
-          return (_context.Cliente?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Cliente?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
