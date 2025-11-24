@@ -1,39 +1,45 @@
 ﻿@model PDV.Models.Categoria
 
 @{
-    ViewData["Title"] = "Cadastrar Nova Categoria";
+    ViewData["Title"] = "Nova Categoria";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
 
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h4 class="mb-0">@ViewData["Title"]</h4>
-            </div>
-            <div class="card-body">
-                <form asp-action="Create">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 text-center">
 
-                    <div class="mb-3">
-                        <label asp-for="Nome" class="form-label"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-tag-fill"></i></span>
-                            <input asp-for="Nome" class="form-control" placeholder="Ex: Bebidas, Doces, Limpeza" />
+                    <div class="mb-4">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle d-inline-flex text-warning mb-3">
+                            <i class="bi bi-folder-plus fs-2"></i>
                         </div>
-                        <span asp-validation-for="Nome" class="text-danger small"></span>
+                        <h4 class="fw-bold text-dark">Nova Categoria</h4>
+                        <p class="text-muted small">Organize seus produtos em grupos.</p>
                     </div>
 
-                    <hr />
-                    <div class="d-flex justify-content-end gap-2">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Voltar
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-2"></i>Cadastrar Categoria
-                        </button>
-                    </div>
-                </form>
+                    <form asp-action="Create" class="text-start">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Nome" class="form-label fw-bold small text-uppercase text-muted">Nome da Categoria</label>
+                            <div class="input-group input-group-lg">
+                                <input asp-for="Nome" class="form-control bg-light border-0" placeholder="Ex: Bebidas" autofocus />
+                            </div>
+                            <span asp-validation-for="Nome" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm rounded-3">
+                                Criar Categoria
+                            </button>
+                            <a asp-action="Index" class="btn btn-link text-secondary text-decoration-none small">
+                                Cancelar e voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

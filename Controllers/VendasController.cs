@@ -23,7 +23,7 @@ namespace PDV.Controllers
         // GET: Vendas
         public async Task<IActionResult> Index()
         {
-            var pDVContext = _context.Vendas.Include(v => v.Cliente).Include(v => v.Fechamento).Include(v => v.TipoPagamento).Include(v => v.UsuarioEmpresa);
+            var pDVContext = _context.Vendas.Include(v => v.Cliente).Include(v => v.Fechamento).Include(v => v.TipoPagamento).Include(v => v.UsuarioEmpresa).OrderByDescending(v=>v.DataEntrada);
             return View(await pDVContext.ToListAsync());
         }
 
@@ -70,35 +70,116 @@ namespace PDV.Controllers
         }
 
         // POST: Vendas/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ValorTotal,TipoPagamentoId,ClienteId,FechamentoId,ProdutosVenda")] Vendas vendas)
+        public async Task<IActionResult> Create(Vendas vendas, int[] TipoPagamentoId, string[] ValorPagamentos)
         {
-                DateTime dtAtual = DateTime.Now;
+            // 1. Validação do Fechamento (Segurança essencial)
+            Fechamento objFechamento = await _context.Fechamento
+                                                     .Where(f => f.DataFechamento == null)
+                                                     .FirstOrDefaultAsync();
 
-                Fechamento objFechamento = await _context.Fechamento.Where(f => f.DataFechamento == null).FirstOrDefaultAsync();
+            if (objFechamento == null)
+            {
+                TempData["Erro"] = "Não é possível realizar venda. O caixa está fechado!";
+                return RedirectToAction("Index", "Home");
+            }
 
-                if (vendas.ClienteId != null)
+            DateTime dtAtual = DateTime.Now;
+
+            // Captura os produtos que vieram do formulário (para não perder a referência)
+            var listaProdutos = vendas.ProdutosVenda;
+
+            // =================================================================================
+            // CENÁRIO A: PENDÊNCIA / FIADO (Sem pagamento imediato)
+            // =================================================================================
+            if (vendas.ClienteId != null && (TipoPagamentoId == null || TipoPagamentoId.Length == 0))
+            {
+                if (vendas.ValorTotal <= 0)
                 {
-                    vendas.Status = (short)Situacao.Pendente;
-                    vendas.TipoPagamentoId = null;
+                    TempData["Erro"] = "O valor da venda não pode ser zero.";
+                    return RedirectToAction("Index", "Home");
                 }
-                else
-                    vendas.Status = (short)Situacao.Finalizado;
 
+                vendas.Status = (short)Situacao.Pendente; // Status 2
+                vendas.TipoPagamentoId = null; // Sem pagamento agora
                 vendas.FechamentoId = objFechamento.Id;
                 vendas.DataEntrada = dtAtual;
                 vendas.DataAtualizacao = dtAtual;
-                vendas.ValorTotal = Convert.ToDecimal(vendas.ValorTotal);
+
+                // Mantém os produtos nesta venda única
+                vendas.ProdutosVenda = listaProdutos;
 
                 _context.Add(vendas);
                 await _context.SaveChangesAsync();
 
+                TempData["Sucesso"] = "Pendência gerada com sucesso!";
+            }
+            // =================================================================================
+            // CENÁRIO B: PAGAMENTO REALIZADO (Um ou Múltiplos Pagamentos)
+            // =================================================================================
+            else
+            {
+                if (TipoPagamentoId == null || TipoPagamentoId.Length == 0)
+                {
+                    TempData["Erro"] = "Selecione pelo menos uma forma de pagamento.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                try
+                {
+                    // Loop para criar uma venda para cada forma de pagamento selecionada
+                    for (int i = 0; i < TipoPagamentoId.Length; i++)
+                    {
+                        Vendas novaVenda = new Vendas();
+
+                        // Dados Comuns
+                        novaVenda.ClienteId = vendas.ClienteId;
+                        novaVenda.FechamentoId = objFechamento.Id;
+                        novaVenda.DataEntrada = dtAtual;
+                        novaVenda.DataAtualizacao = dtAtual;
+                        novaVenda.Status = (short)Situacao.Finalizado; // Status 1
+
+                        // Dados Específicos do Loop
+                        novaVenda.TipoPagamentoId = TipoPagamentoId[i];
+
+                        // Tratamento seguro do valor (string -> decimal)
+                        if (ValorPagamentos != null && ValorPagamentos.Length > i)
+                        {
+                            string valorLimpo = ValorPagamentos[i].Replace(".", ","); // Garante virgula para pt-BR
+                            if (decimal.TryParse(valorLimpo, out decimal valorDecimal))
+                            {
+                                novaVenda.ValorTotal = valorDecimal;
+                            }
+                        }
+
+                        // --- LÓGICA CRÍTICA DE ESTOQUE ---
+                        // Só vinculamos os produtos na PRIMEIRA venda (i == 0).
+                        // As outras (i > 0) são apenas financeiras. Se vincularmos em todas,
+                        // o estoque será baixado múltiplas vezes (duplicado/triplicado).
+                        if (i == 0)
+                        {
+                            novaVenda.ProdutosVenda = listaProdutos;
+                        }
+                        else
+                        {
+                            novaVenda.ProdutosVenda = null;
+                        }
+
+                        _context.Add(novaVenda);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    TempData["Sucesso"] = "Venda finalizada com sucesso!";
+                }
+                catch (Exception ex)
+                {
+                    TempData["Erro"] = "Erro ao processar venda: " + ex.Message;
+                }
+            }
+
             return RedirectToAction("Index", "Home");
         }
-
         // GET: Vendas/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -107,15 +188,22 @@ namespace PDV.Controllers
                 return NotFound();
             }
 
-            var vendas = await _context.Vendas.FindAsync(id);
+            // ADICIONEI OS INCLUDES PARA TRAZER OS DADOS DE VISUALIZAÇÃO
+            var vendas = await _context.Vendas
+                .Include(v => v.Cliente)
+                .Include(v => v.TipoPagamento)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
             if (vendas == null)
             {
                 return NotFound();
             }
-            ViewData["ClienteId"] = new SelectList(_context.Cliente, "Id", "CNPJ", vendas.ClienteId);
-            ViewData["FechamentoId"] = new SelectList(_context.Fechamento, "Id", "Id", vendas.FechamentoId);
+
+            // Apenas o Tipo de Pagamento precisa ser um Dropdown selecionável
             ViewData["TipoPagamentoId"] = new SelectList(_context.TipoPagamento, "Id", "Descricao", vendas.TipoPagamentoId);
-            ViewData["UsuarioEmpresaId"] = new SelectList(_context.UsuarioEmpresa, "Id", "CNPJ", vendas.UsuarioEmpresaId);
+
+            // Removemos os outros ViewDatas que estavam causando o erro ou eram desnecessários para essa etapa
+
             return View(vendas);
         }
 
@@ -124,7 +212,7 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ValorTotal,Status,DataEntrada,DataAtualizacao,TipoPagamentoId,ClienteId,UsuarioEmpresaId,FechamentoId")] Vendas vendas)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ValorTotal,Status,DataEntrada,DataAtualizacao,TipoPagamentoId,ClienteId,FechamentoId")] Vendas vendas)
         {
             if (id != vendas.Id)
             {

@@ -1,58 +1,78 @@
 ﻿@model IEnumerable<PDV.Models.Categoria>
 
 @{
-    ViewData["Title"] = "Gestão de Categorias";
+    ViewData["Title"] = "Categorias";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">@ViewData["Title"]</h1>
-    <a asp-action="Create" class="btn btn-primary shadow-sm">
-        <i class="bi bi-plus-lg me-2"></i>Nova Categoria
-    </a>
-</div>
+<div class="container-fluid py-4">
 
-<div class="card shadow-sm">
-    <div class="card-header">
-        <h5 class="mb-0">Categorias Cadastradas</h5>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>@Html.DisplayNameFor(model => model.Nome)</th>
-                        <th class="text-end">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-0">Categorias</h2>
+                    <p class="text-muted small mb-0">Organize seus produtos</p>
+                </div>
+                <a asp-action="Create" class="btn btn-primary px-4 fw-bold shadow-sm rounded-3">
+                    <i class="bi bi-plus-lg me-2"></i>Nova
+                </a>
+            </div>
+
+            <!-- Card -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Nome da Categoria</th>
+                                    <th class="pe-4 py-3 text-uppercase text-muted small fw-bold border-0 text-end">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr class="border-bottom border-light">
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-folder-fill text-warning me-3 fs-5"></i>
+                                                <span class="fw-semibold text-dark">@item.Nome</span>
+                                            </div>
+                                        </td>
+                                        <td class="pe-4 text-end">
+                                            <div class="btn-group">
+                                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary">
+                                                    <i class="bi bi-pencil-fill"></i>
+                                                </a>
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light text-info">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-light text-danger"
+                                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                        data-bs-id="@item.Id" data-bs-name="@item.Nome"
+                                                        data-nome-base="categoria"
+                                                        data-bs-url="@Url.Action("Delete", "Categorias")">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (!Model.Any())
                     {
-                        <tr>
-                            <td>@Html.DisplayFor(modelItem => item.Nome)</td>
-
-                            <td class="text-end">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
-                                    <i class="bi bi-pencil-fill"></i>
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Detalhes">
-                                    <i class="bi bi-search"></i>
-                                </a>
-
-                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-bs-id="@item.Id"
-                                        data-bs-name="@item.Nome"
-                                        data-nome-base="categoria"
-                                        data-bs-url="@Url.Action("Delete","Categorias")">
-                                    <i class="bi bi-trash-fill"></i>
-                                </button>
-                            </td>
-                        </tr>
+                        <div class="text-center py-5">
+                            <i class="bi bi-tags text-muted opacity-25" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">Nenhuma categoria cadastrada.</p>
+                        </div>
                     }
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
 <partial name="_DeleteModal" />

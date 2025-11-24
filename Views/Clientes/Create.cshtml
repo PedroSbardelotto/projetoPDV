@@ -1,77 +1,87 @@
 ﻿@model PDV.Models.Cliente
 
 @{
-    ViewData["Title"] = "Cadastrar Novo Cliente";
+    ViewData["Title"] = "Novo Cliente";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h4 class="mb-0">@ViewData["Title"]</h4>
-            </div>
-            <div class="card-body">
-                <form asp-action="Create">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    
-                    <div class="mb-3">
-                        <label asp-for="Nome" class="form-label"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                            <input asp-for="Nome" class="form-control" placeholder="Nome completo ou Razão Social" />
-                        </div>
-                        <span asp-validation-for="Nome" class="text-danger small"></span>
-                    </div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
-                                <input asp-for="Email" class="form-control" placeholder="email@dominio.com" />
-                            </div>
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="Contato" class="form-label"></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
-                                <input asp-for="Contato" id="contato-mask" class="form-control" placeholder="(00) 00000-0000" />
-                            </div>
-                            <span asp-validation-for="Contato" class="text-danger small"></span>
-                        </div>
-                    </div>
+            <!-- Card do Formulário -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                    <h4 class="fw-bold text-dark mb-1">Cadastrar Cliente</h4>
+                    <p class="text-muted small">Preencha os dados para adicionar à base.</p>
+                </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="CPF" class="form-label"></label>
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Nome -->
+                        <div class="mb-4">
+                            <label asp-for="Nome" class="form-label fw-bold small text-uppercase text-muted">Nome Completo</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-building"></i></span>
-                                <input asp-for="CPF" id="cpf-mask" class="form-control" placeholder="000.000.000-00" />
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person-fill"></i></span>
+                                <input asp-for="Nome" class="form-control bg-light border-start-0 ps-0" placeholder="Ex: João da Silva" autofocus />
                             </div>
-                            <span asp-validation-for="CPF" class="text-danger small"></span>
+                            <span asp-validation-for="Nome" class="text-danger small mt-1 d-block"></span>
                         </div>
-                    </div>
-                    
-                    <hr />
-                    <div class="d-flex justify-content-end gap-2">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Voltar
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-2"></i>Cadastrar Cliente
-                        </button>
-                    </div>
-                </form>
+
+                        <!-- Linha: Contato e CPF -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Contato" class="form-label fw-bold small text-uppercase text-muted">Celular / WhatsApp</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-whatsapp"></i></span>
+                                    <input asp-for="Contato" id="contato-mask" class="form-control bg-light border-start-0 ps-0" placeholder="(00) 00000-0000" />
+                                </div>
+                                <span asp-validation-for="Contato" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CPF" class="form-label fw-bold small text-uppercase text-muted">CPF</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-card-heading"></i></span>
+                                    <input asp-for="CPF" id="cpf-mask" class="form-control bg-light border-start-0 ps-0" placeholder="000.000.000-00" />
+                                </div>
+                                <span asp-validation-for="CPF" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label fw-bold small text-uppercase text-muted">E-mail (Opcional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control bg-light border-start-0 ps-0" placeholder="nome@exemplo.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <hr class="my-4 dashed-border opacity-50">
+
+                        <!-- Ações -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-light text-secondary fw-bold border-0 px-3">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm rounded-3">
+                                <i class="bi bi-check-lg me-2"></i>Salvar Cliente
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function(){

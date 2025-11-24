@@ -2,31 +2,311 @@
 @using System.Globalization
 
 @{
-    ViewData["Title"] = "Home Page";
-    // Essencial para formatar R$ e para o JavaScript entender os números
+    ViewData["Title"] = "PDV - Frente de Caixa";
     var culture = CultureInfo.InvariantCulture;
 }
 
-<!-- TROCAR ESSE IGUAL PARA DIFERENTE PARA MEXER NO RESTANTE-->
+<style>
+    /* --- VARIÁVEIS E GERAL --- */
+    :root {
+        --primary-color: #4361ee;
+        --secondary-bg: #f8f9fa;
+        --card-bg: #ffffff;
+        --text-dark: #2b2d42;
+        --success-color: #2ec4b6;
+    }
+
+    body {
+        background-color: var(--secondary-bg);
+        overflow-y: hidden; /* Remove scroll da página inteira para focar no app */
+    }
+
+    /* --- SCROLLBAR PERSONALIZADA --- */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+    /* --- LAYOUT ESTRUTURAL --- */
+    .app-container {
+        height: calc(100vh - 60px); /* Ajuste conforme seu Navbar */
+        display: flex;
+        gap: 1.5rem;
+        padding: 1rem;
+        overflow: hidden;
+    }
+
+    .products-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .cart-section {
+        width: 380px; /* Largura fixa para o carrinho */
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+    }
+
+    /* --- BARRA DE CATEGORIAS (ESTILO CHIPS) --- */
+    .category-scroll {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        margin-bottom: 1rem;
+        scrollbar-width: none; /* Firefox */
+    }
+
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+    .category-chip {
+        white-space: nowrap;
+        padding: 0.5rem 1.2rem;
+        border-radius: 50px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .category-chip:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        .category-chip.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.3);
+        }
+
+    /* --- CARDS DE PRODUTOS MODERNOS --- */
+    .grid-products {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        overflow-y: auto;
+        padding: 5px;
+        padding-bottom: 20px;
+    }
+
+    .product-card-modern {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #f1f5f9;
+        padding: 1rem;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 160px;
+    }
+
+        .product-card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #e2e8f0;
+        }
+
+    .product-initial-icon {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+        color: var(--primary-color);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 0.8rem;
+    }
+
+    .product-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        line-height: 1.3;
+        margin-bottom: auto;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-price-badge {
+        margin-top: 0.8rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .add-icon {
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.2s;
+        color: var(--success-color);
+    }
+
+    .product-card-modern:hover .add-icon {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* --- CARRINHO (SIDEBAR) --- */
+    .cart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fff;
+    }
+
+    .cart-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    .cart-item-modern {
+        display: flex;
+        align-items: center;
+        padding: 0.8rem;
+        background: #fff;
+        border-radius: 10px;
+        margin-bottom: 0.8rem;
+        border: 1px solid #f1f5f9;
+        transition: background 0.2s;
+    }
+
+        .cart-item-modern:hover {
+            background: #f8fafc;
+        }
+
+    .cart-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f1f5f9;
+        padding: 2px;
+        border-radius: 20px;
+    }
+
+    .btn-circle-xs {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        border: none;
+        background: #fff;
+        color: var(--text-dark);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        transition: transform 0.1s;
+    }
+
+        .btn-circle-xs:active {
+            transform: scale(0.9);
+        }
+
+    .cart-footer {
+        padding: 1.5rem;
+        background: #fff;
+        border-top: 1px solid #f1f5f9;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.02);
+    }
+
+    /* --- TABELA DE CLIENTES (Modal) --- */
+    #listaClientes tr.table-active td {
+        background-color: var(--primary-color) !important;
+        color: white;
+    }
+
+    #listaClientes tr {
+        cursor: pointer;
+    }
+
+    /* --- PAGAMENTOS MÚLTIPLOS CSS --- */
+    .payment-method-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fff;
+        text-align: center;
+        height: 100%;
+    }
+
+        .payment-method-card:hover, .payment-method-card.selected {
+            border-color: var(--primary-color);
+            background-color: #eff6ff;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+    .payment-row-item {
+        background: #f8f9fa;
+        border-left: 4px solid var(--primary-color);
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 8px;
+    }
+</style>
+
 @if (Model.Fechamento == null)
 {
-    <div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
-
-        <div class="card shadow-lg col-11 col-md-5 col-lg-4 p-4 text-center">
-
+    <div class="d-flex align-items-center justify-content-center vh-100 bg-light">
+        <div class="card border-0 shadow-lg col-11 col-md-5 col-lg-4 p-5 text-center" style="border-radius: 20px;">
             <div class="card-body">
-                <i class="bi bi-box-arrow-in-right" style="font-size: 3rem; color: var(--bs-primary);"></i>
-                <h2 class="card-title mt-3">Caixa Fechado</h2>
-                <p class="text-muted">Informe o valor inicial (fundo de troco) para abrir o caixa e começar as vendas.</p>
-
-                <form asp-action="AbrirCaixa" asp-controller="Home" method="post" class="mt-4">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">R$</span>
-                        <input type="number" step="0.01" class="form-control form-control-lg text-end" placeholder="0,00" name="ValorInicial" required autofocus>
+                <div class="mb-4">
+                    <div class="bg-primary bg-opacity-10 p-4 rounded-circle d-inline-flex">
+                        <i class="bi bi-shop fs-1 text-primary"></i>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
-                        <i class="bi bi-door-open-fill me-2"></i>
-                        ABRIR CAIXA
+                </div>
+                <h2 class="fw-bold text-dark">Abrir Caixa</h2>
+                <p class="text-muted mb-4">Informe o fundo de troco para iniciar as operações.</p>
+
+                <form asp-action="AbrirCaixa" asp-controller="Home" method="post">
+                    <div class="form-floating mb-4">
+                        <input type="number" step="0.01" class="form-control form-control-lg fw-bold text-center fs-3"
+                               id="valorInicial" placeholder="0,00" name="ValorInicial" required autofocus>
+                        <label for="valorInicial">Valor Inicial (R$)</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-unlock-fill me-2"></i>INICIAR O DIA
                     </button>
                 </form>
             </div>
@@ -35,817 +315,571 @@
 }
 else
 {
-    <div class="container-fluid pt-2">
-        <div class="row">
+    <div class="app-container">
 
-            <div class="col-md-9">
-                <div class="mb-2">
-                    <input type="text" id="product-search" class="form-control form-control-sm" placeholder="Digite o nome ou código do produto..." style="max-width:50%;">
+        <!-- ÁREA ESQUERDA: PRODUTOS -->
+        <div class="products-section">
+            <!-- Busca -->
+            <div class="mb-3">
+                <div class="input-group input-group-lg shadow-sm">
+                    <span class="input-group-text bg-white border-0 ps-3 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="product-search" class="form-control border-0 fs-6"
+                           placeholder="Buscar produto por nome ou código..." style="box-shadow: none;">
                 </div>
+            </div>
 
-                <ul class="nav nav-pills mb-2" id="category-filter">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" data-bs-target-category="all">Todos</a>
-                    </li>
-                    @foreach (var categoria in Model.Categorias)
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-bs-target-category="@categoria.Id">@categoria.Nome</a>
-                        </li>
-                    }
-                </ul>
+            <!-- Categorias (Chips) -->
+            <div class="category-scroll" id="category-filter">
+                <div class="category-chip active" data-bs-target-category="all">
+                    <i class="bi bi-grid-fill me-1"></i> Todos
+                </div>
+                @foreach (var categoria in Model.Categorias)
+                {
+                    <div class="category-chip" data-bs-target-category="@categoria.Id">
+                        @categoria.Nome
+                    </div>
+                }
+            </div>
 
-                <div class="row pt-2" id="product-grid" style="max-height: 75vh; overflow-y: auto;">
-                    @foreach (var produto in Model.Produtos)
-                    {
-                        <div class="col-xl-2 col-lg-3 col-md-4 mb-2 product-card" data-category-id="@produto.CategoriaId" style="min-height:80px;">
-                            <div class="card h-100 shadow-sm product-clickable"
-                                 style="cursor: pointer;"
-                                 data-product-id="@produto.Id"
-                                 data-product-name="@produto.Nome"
-                                 data-product-price="@produto.Preco.ToString(culture)">
-                                <div class="card-body text-center d-flex flex-column justify-content-center p-2">
-                                    <h6 class="card-title mb-1">@produto.Nome</h6>
-                                    <span class="card-subtitle text-danger fw-bold small">@produto.Preco.ToString("C")</span>
+            <!-- Grid de Produtos -->
+            <div class="grid-products" id="product-grid">
+                @foreach (var produto in Model.Produtos)
+                {
+                    <div class="product-card-modern product-clickable"
+                         data-category-id="@produto.CategoriaId"
+                         data-product-id="@produto.Id"
+                         data-product-name="@produto.Nome"
+                         data-product-price="@produto.Preco.ToString(culture)">
+
+                        <div>
+                            <div class="d-flex justify-content-between">
+                                <div class="product-initial-icon">
+                                    @produto.Nome.Substring(0, 1).ToUpper()
                                 </div>
+                                <i class="bi bi-plus-circle-fill fs-4 add-icon"></i>
                             </div>
+                            <h6 class="product-title" title="@produto.Nome">@produto.Nome</h6>
                         </div>
-                    }
-                </div>
+
+                        <div class="product-price-badge">
+                            @produto.Preco.ToString("C")
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ÁREA DIREITA: CARRINHO (SIDEBAR) -->
+        <div class="cart-section">
+            <div class="cart-header d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-bag-check-fill text-primary me-2"></i>Cesta</h5>
+                <span class="badge bg-primary rounded-pill" id="cart-count-badge">0 itens</span>
             </div>
 
-            <div class="col-md-3">
-                <div class="card shadow-sm" style="position: sticky; top: 10px;">
-                    <div class="card-header text-center p-2">
-                        <h5 class="mb-0">Resumo do Pedido</h5>
+            <div class="cart-body" id="cart-scroll-area">
+                <div id="cart-empty-message" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-50">
+                    <i class="bi bi-cart-x fs-1 mb-2"></i>
+                    <p>Sua cesta está vazia</p>
+                </div>
+                <ul class="list-unstyled mb-0" id="cart-items"></ul>
+            </div>
+
+            <div class="cart-footer">
+                <div class="input-group input-group-sm mb-3">
+                    <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-tag-fill"></i></span>
+                    <input type="number" id="desconto-pagamento" class="form-control bg-light border-0" placeholder="Desconto (R$)" />
+                </div>
+
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal">R$ 0,00</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-bold text-dark">TOTAL</span>
+                    <span class="fs-2 fw-bolder text-primary" id="cart-total">R$ 0,00</span>
+                </div>
+
+                <button class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm mb-2" id="btn-finish-sale">
+                    <div class="d-flex justify-content-between align-items-center px-2">
+                        <span>Finalizar</span>
+                        <i class="bi bi-arrow-right"></i>
                     </div>
+                </button>
 
-                    <ul class="list-group list-group-flush small over-scroll" id="cart-items" style="max-height: 55vh; overflow-y: auto;">
-                        <li class="list-group-item text-center text-muted" id="cart-empty-message">
-                            Nenhum item adicionado.
-                        </li>
-                    </ul>
-
-                    <div class="card-body border-top p-2 small">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted">Subtotal</span>
-                            <span id="cart-subtotal">R$ 0,00</span>
-                        </div>
-                        <hr class="my-1">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <span class="text-muted">Desconto</span>
-                            </div>
-                            <div class="col-md-4">
-                                <input type="number" id="desconto-pagamento" class="form-control form-control-sm" placeholder="0,00" />
-                            </div>
-                        </div>
-                        <hr class="my-1">
-                        <div class="d-flex justify-content-between">
-                            <h6 class="mb-0">Total</h6>
-                            <h6 class="mb-0 text-danger fw-bold" id="cart-total">R$ 0,00</h6>
-                        </div>
-                    </div>
-
-                    <div class="card-footer p-2">
-                        <button class="btn btn-success w-100 fw-bold py-2" id="btn-finish-sale" onclick="subtotalModal()">
-                            <i class="bi bi-check-circle-fill me-2"></i>Finalizar Venda
+                <div class="row g-2" id="btn-pendencia">
+                    <div class="col-6">
+                        <button class="btn btn-outline-primary w-100 btn-sm py-2 fw-semibold" id="btn-abrir-modal">
+                            <i class="bi bi-person-plus-fill me-1"></i> Cliente/Fiado
                         </button>
-
-                        <div class="d-flex justify-content-between mt-2" id="btn-pendencia">
-                            <button class="btn btn-link text-primary p-0 small fw-bold" id="btn-abrir-modal">
-                                <i class="bi bi-person-plus-fill me-1"></i>
-                                Gerar Pendência
-                            </button>
-
-                            <button class="btn btn-link text-danger p-0 small fw-bold"
-                                    id="btn-abrir-modal-fechar" type="button">
-                                <i class="bi bi-door-closed-fill me-1"></i>
-                                Fechar Caixa
-                            </button>
-                        </div>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-danger w-100 btn-sm py-2 fw-semibold" id="btn-abrir-modal-fechar">
+                            <i class="bi bi-door-closed me-1"></i> Fechar Caixa
+                        </button>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 }
 
-<div class="modal fade" id="modalPagamentoSemProduto" tabindex="-1" aria-labelledby="modalPagamentoSemProdutoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header p-2">
-                <h6 class="modal-title" id="modalPagamentoLabel">Atenção</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <div class="modal-body p-2">
-                <p class="">O carrinho está vazio, insira um produto para finalizar a compra!</p>
-            </div>
-            <div class="modal-footer p-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+<!-- Modal Carrinho Vazio -->
+<div class="modal fade" id="modalPagamentoSemProduto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 text-center p-3">
+            <div class="modal-body">
+                <i class="bi bi-cart-x text-muted fs-1"></i>
+                <h6 class="mt-3">O carrinho está vazio!</h6>
+                <p class="small text-muted">Adicione produtos antes de finalizar.</p>
+                <button type="button" class="btn btn-secondary btn-sm w-100 rounded-pill" data-bs-dismiss="modal">Ok, entendi</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalPagamento" tabindex="-1" aria-labelledby="modalPagamentoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header p-2">
-                <h6 class="modal-title" id="modalPagamentoLabel">Selecionar Tipo de Pagamento</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+<!-- Modal Pagamento (Com Múltiplos Pagamentos) -->
+<div class="modal fade" id="modalPagamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 16px;">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-wallet2 me-2"></i>Pagamento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-2">
-                <div class="row">
-                    <div class="col-md-8">
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <div class="col-md-7 p-4 border-end">
+                        <p class="text-muted small fw-bold text-uppercase mb-3">Selecione a forma de pagamento</p>
+                        <div class="row g-2 mb-4">
+                            @if (ViewBag.TipoPagamentos != null)
+                            {
+                                @foreach (var tipo in ViewBag.TipoPagamentos)
+                                {
+                                    string icon = "bi-credit-card";
+                                    string nome = tipo.Descricao.ToLower();
+                                    if (nome.Contains("dinheiro")) icon = "bi-cash-stack";
+                                    else if (nome.Contains("pix")) icon = "bi-qr-code";
+
+                                    <div class="col-4">
+                                        <div class="payment-method-card" onclick="adicionarLinhaPagamento(@tipo.Id, '@tipo.Descricao', '@icon')">
+                                            <i class="bi @icon fs-3 mb-2 d-block"></i>
+                                            <span class="small fw-bold">@tipo.Descricao</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <p class="text-muted small fw-bold text-uppercase mb-2">Pagamentos Adicionados</p>
                         <form id="formPagamento" asp-action="Create" asp-controller="Vendas">
                             <input type="hidden" name="ValorTotal" id="valorTotalPagamento" />
-
-                            <div id="formasPagamentoContainer">
-                                <div class="row mb-2 forma-pagamento small">
-                                    <div class="col-md-4">
-                                        <label for="TipoPagamento_0" class="form-label">Forma de Pagamento</label>
-                                        <select class="form-control form-control-sm" name="TipoPagamentoId">
-                                            @foreach (var tipo in ViewBag.TipoPagamentos)
-                                            {
-                                                <option value="@tipo.Id">@tipo.Descricao</option>
-                                            }
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Valor (R$)</label>
-                                        <input type="number" id="pagamento" step="0.01" class="form-control form-control-sm" name="ValorPagamentos" placeholder="0,00">
-                                    </div>
-                                    <div class="col-md-1 d-flex align-items-end">
-                                        <button type="button" class="btn btn-danger btn-sm btn-remove d-none"><i class="bi bi-trash-fill"></i></button>
-                                    </div>
+                            <div id="listaPagamentosContainer" style="min-height: 120px; max-height: 200px; overflow-y: auto;">
+                                <div id="msg-sem-pagamento" class="text-center text-muted py-4 opacity-50">
+                                    <small>Nenhum pagamento registrado ainda.</small>
                                 </div>
                             </div>
-
-                            <button type="button" class="btn btn-outline-primary btn-sm mt-1" id="btnAddForma">
-                                Adicinar
-                            </button>
                         </form>
                     </div>
-
-                    <div class="col-md-4 border p-2 small">
-                        <div class="row mt-1">
-                            <p class="col-md-6 text-secondary">Subtotal: </p>
-                            <p id="total-value-cart" class="col-md-6"></p>
+                    <div class="col-md-5 bg-light p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-4 text-dark">Resumo da Venda</h6>
+                            <div class="d-flex justify-content-between mb-2 text-secondary">
+                                <span>Total Venda</span>
+                                <span class="fw-bold text-dark" id="resumo-total-venda">R$ 0,00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-secondary">
+                                <span>Total Pago</span>
+                                <span class="fw-bold text-success" id="resumo-total-pago">R$ 0,00</span>
+                            </div>
+                            <hr>
+                            <div class="text-center mt-4">
+                                <span class="d-block small fw-bold text-uppercase text-muted" id="label-restante">Restante a Pagar</span>
+                                <h1 class="display-5 fw-bold text-danger mb-0" id="resumo-restante">R$ 0,00</h1>
+                            </div>
                         </div>
-                        <hr class="my-1">
-                        <div class="row">
-                            <p class="col-md-6">Total a pagar:</p>
-                            <p id="total-pagar" class="col-md-6 text-danger fw-bold fs-6"></p>
+                        <div class="d-grid gap-2">
+                            <button type="submit" form="formPagamento" class="btn btn-success py-3 fw-bold shadow-sm" id="btnConfirmarModal" disabled>
+                                <i class="bi bi-check-lg me-2"></i>CONCLUIR
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary py-2 border-0" data-bs-dismiss="modal">Cancelar</button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="modal-footer p-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" form="formPagamento" class="btn btn-success btn-sm">Confirmar Pagamento</button>
-            </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalPendencia" tabindex="-1" aria-labelledby="modalPendenciaLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header p-2">
-                <h6 class="modal-title" id="modalPagamentoLabel">Atenção</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+<!-- Modal Pendência -->
+<div class="modal fade" id="modalPendencia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Identificar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-2">
+            <div class="modal-body">
                 <form id="formPendencia" asp-action="Create" asp-controller="Vendas">
-                    <input type="hidden" id="clienteSelecionado" name="ClienteId" />
+                    <input type="hidden" id="clienteSelecionado" name="ClienteId" required />
                     <input type="hidden" name="ValorTotal" id="valorTotal" />
                     <input type="hidden" name="FechamentoId" id="fechamentoId" />
 
-                    <div id="formasPagamentoContainer">
-                        <div class="row mb-2 forma-pagamento">
-                            <div class="col-md-12">
-                                <div class="">
-                                    <div class="input-group mb-3">
-                                        <input type="text" id="pesquisaCliente" class="form-control form-control-sm" placeholder="Digite nome ou número do cliente...">
-                                        <button id="btnPesquisar" class="btn btn-primary btn-sm" type="button"><i class="bi bi-search"></i></button>
-                                    </div>
-
-                                    <table id="cliente-search" class="table table-striped d-none">
-                                        <thead>
-                                            <tr>
-                                                <th>Número</th>
-                                                <th>Nome</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="listaClientes">
-                                            @foreach (var cliente in Model.Clientes)
-                                            {
-                                                <tr>
-                                                    <td>@cliente.Id</td>
-                                                    <td>@cliente.Nome</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                    <p id="clienteSelecionadoNome" class="mt-2 fw-bold text-primary"></p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="input-group mb-3">
+                        <input type="text" id="pesquisaCliente" class="form-control" placeholder="Buscar cliente...">
+                        <button id="btnPesquisar" class="btn btn-primary" type="button"><i class="bi bi-search"></i></button>
                     </div>
+
+                    <div class="border rounded overflow-auto" style="height: 250px;">
+                        <table id="cliente-search" class="table table-hover mb-0 small">
+                            <thead class="table-light sticky-top">
+                                <tr><th>ID</th><th>Nome</th></tr>
+                            </thead>
+                            <tbody id="listaClientes">
+                                @foreach (var cliente in Model.Clientes)
+                                {
+                                    <tr><td>@cliente.Id</td><td>@cliente.Nome</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="msg-nenhum-cliente" class="text-center text-muted small mt-2 d-none">Nenhum encontrado.</div>
+                    <div id="clienteSelecionadoNome" class="alert alert-primary mt-3 mb-0 d-none py-2 small fw-bold text-center"></div>
                 </form>
             </div>
-            <div class="modal-footer p-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" form="formPendencia" class="btn btn-success btn-sm">Confirmar</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="submit" form="formPendencia" class="btn btn-primary w-100 fw-bold" id="btnConfirmarPendencia" disabled>Confirmar Pendência</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalConfirmarFechamento" tabindex="-1" aria-labelledby="confirmarFechamentoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+<!-- Modal Fechar Caixa -->
+<div class="modal fade" id="modalConfirmarFechamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
             <form asp-action="FecharCaixa" asp-controller="Home" method="post" id="form-fechar-caixa">
-                <div class="modal-header p-2">
-                    <h6 class="modal-title" id="confirmarFechamentoLabel">Fechar Caixa</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <div class="modal-header bg-danger text-white">
+                    <h6 class="modal-title">Fechar Caixa</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-2">
-                    <p class="text-muted small">Confirme o valor total (dinheiro + outros pagamentos) contado no caixa para encerrar as vendas de hoje.</p>
-
-                    <div class="input-group">
-                        <span class="input-group-text">R$</span>
-                        <input type="number" step="0.01" class="form-control form-control-lg text-end"
-                               placeholder="0,00" name="ValorFechamento" required autofocus>
+                <div class="modal-body p-4 text-center">
+                    <p class="text-muted mb-3">Informe o valor físico contado na gaveta.</p>
+                    <div class="form-floating mb-2">
+                        <input type="number" step="0.01" class="form-control fs-3 text-center fw-bold"
+                               id="valorFechamento" placeholder="0,00" name="ValorFechamento" required>
+                        <label for="valorFechamento">Valor (R$)</label>
                     </div>
                 </div>
-                <div class="modal-footer p-2">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger btn-sm" id="btn-confirmar-fechar">Sim, Fechar Caixa</button>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-link text-decoration-none text-muted" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger px-4 fw-bold" id="btn-confirmar-fechar">Confirmar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<style>
-    /* Faz a linha parecer clicável */
-    #listaClientes tr {
-        cursor: pointer;
-        transition: background-color 0.2s ease-in-out;
-    }
-
-        /* Quando a linha é selecionada */
-        #listaClientes tr.table-active {
-            background-color: #0d6efd !important; /* azul padrão Bootstrap */
-            color: #fff !important;
-            font-weight: 600;
-        }
-</style>
-
 @section Scripts {
     <script>
-        // Função para formatar moeda (para exibir no carrinho)
         const formatCurrency = (value) => {
             return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         };
 
-        // Estado do carrinho (um array de objetos)
         let cart = [];
 
-        document.getElementById('btn-abrir-modal').addEventListener('click', () => {
-                const bntPendencia = document.getElementById('modalPendencia')
-                const modalPendencia = new bootstrap.Modal(bntPendencia);
-                modalPendencia.show()
-                return
-            })
-
-        document.getElementById("btnPesquisar").addEventListener("click", function () {
-            const termo = document.getElementById("pesquisaCliente").value.toLowerCase().trim();
-            const showClient = document.getElementById("cliente-search");
-            const linhas = document.querySelectorAll("#listaClientes tr");
-            const msgNenhum = document.getElementById("msg-nenhum");
-
-            // Se o campo estiver vazio, não faz a busca
-            if (!termo) {
-                return;
-            }
-
-            showClient.classList.remove("d-none");
-
-            let encontrou = false;
-
-            linhas.forEach(linha => {
-                const numero = linha.children[0].textContent.toLowerCase();
-                const nome = linha.children[1].textContent.toLowerCase();
-
-                if (numero.includes(termo) || nome.includes(termo)) {
-                    linha.style.display = "";
-                    encontrou = true;
-                } else {
-                    linha.style.display = "none";
-                }
+        // --- 1. UI INTERATIVA DE CATEGORIAS ---
+        const chips = document.querySelectorAll('.category-chip');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                const categoryId = chip.getAttribute('data-bs-target-category');
+                const searchTerm = document.getElementById('product-search').value.toLowerCase();
+                filterProductsLogic(categoryId, searchTerm);
             });
-
-            // Exibe ou oculta a linha de "nenhum resultado"
-            if (msgNenhum) {
-                msgNenhum.style.display = encontrou ? "none" : "";
-            }
         });
 
-        const listaClientes = document.getElementById("listaClientes");
+        document.getElementById('product-search').addEventListener('input', (e) => {
+            const activeChip = document.querySelector('.category-chip.active');
+            const categoryId = activeChip ? activeChip.getAttribute('data-bs-target-category') : 'all';
+            filterProductsLogic(categoryId, e.target.value.toLowerCase());
+        });
 
-        if (listaClientes) {
-          listaClientes.addEventListener("click", function (e) {
-            const linha = e.target.closest("tr");
-            if (!linha) return;
-            if (linha.style.display === "none") return;
-
-            const inputHidden = document.getElementById("clienteSelecionado");
-            const nomeVisual = document.getElementById("clienteSelecionadoNome");
-
-            const clienteId = linha.children[0].textContent.trim();
-            const clienteNome = linha.children[1].textContent.trim();
-
-            // Se já está selecionado, desseleciona
-            if (linha.classList.contains("table-active")) {
-              linha.classList.remove("table-active");
-              if (inputHidden) inputHidden.value = "";
-              if (nomeVisual) nomeVisual.textContent = "";
-              return;
-            }
-
-            // Remove o destaque das outras linhas
-            document.querySelectorAll("#listaClientes tr").forEach(tr => tr.classList.remove("table-active"));
-
-            // Adiciona destaque na linha clicada
-            linha.classList.add("table-active");
-
-            // Atualiza o input hidden
-            if (inputHidden) inputHidden.value = clienteId;
-
-            // Mostra o nome visualmente
-            if (nomeVisual) nomeVisual.textContent = `Cliente selecionado: ${clienteNome}`;
-
-            console.log(`Cliente selecionado: ${clienteNome} (ID ${clienteId})`);
-          });
+        function filterProductsLogic(categoryId, searchTerm) {
+            const cards = document.querySelectorAll('.product-card-modern');
+            cards.forEach(card => {
+                const cat = card.getAttribute('data-category-id');
+                const name = card.getAttribute('data-product-name').toLowerCase();
+                const show = (categoryId === 'all' || categoryId === cat) && name.includes(searchTerm);
+                card.style.display = show ? 'flex' : 'none';
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // --- 2. CARRINHO ---
+        const productGrid = document.getElementById('product-grid');
 
-            const categoryLinks = document.querySelectorAll('#category-filter .nav-link');
-            const productCards = document.querySelectorAll('.product-card');
-            const searchInput = document.getElementById('product-search');
-            const productGrid = document.getElementById('product-grid');
-            const cartItemsList = document.getElementById('cart-items');
-            const cartEmptyMessage = document.getElementById('cart-empty-message');
-            const cartSubtotal = document.getElementById('cart-subtotal');
-            const cartTotal = document.getElementById('cart-total');
-            const discontPayment = document.getElementById('desconto-pagamento')
+        productGrid.addEventListener('click', (e) => {
+            const clickedCard = e.target.closest('.product-clickable');
+            if (!clickedCard) return;
+            clickedCard.style.transform = "scale(0.95)";
+            setTimeout(() => clickedCard.style.transform = "", 150);
+            const product = {
+                id: clickedCard.getAttribute('data-product-id'),
+                name: clickedCard.getAttribute('data-product-name'),
+                price: parseFloat(clickedCard.getAttribute('data-product-price'))
+            };
+            addToCart(product);
+        });
 
-                const recalcularTotal = () => {
-            const subtotalText = cartSubtotal.textContent
-                .replace(/[^\d,.-]/g, '')
-                .replace(',', '.');
-            const subtotal = parseFloat(subtotalText) || 0;
-            const desconto = parseFloat(discontPayment.value) || 0;
-            const novoTotal = Math.max(subtotal - desconto, 0);
-
-            cartTotal.textContent = novoTotal.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
+        const addToCart = (product) => {
+            const existingItem = cart.find(item => item.id === product.id);
+            if (existingItem) existingItem.quantity++;
+            else { product.quantity = 1; cart.push(product); }
+            updateCartUI();
         };
 
-        // 🎯 Atualiza o total sempre que o desconto mudar
-        discontPayment.addEventListener('input', recalcularTotal);
+        const updateCartUI = () => {
+            const cartList = document.getElementById('cart-items');
+            const emptyMsg = document.getElementById('cart-empty-message');
+            const countBadge = document.getElementById('cart-count-badge');
 
-            // --- 1. LÓGICA DE FILTRO (CATEGORIA E BUSCA) ---
+            cartList.innerHTML = '';
+            let subtotal = 0;
+            let totalItems = 0;
 
-            const filterProducts = () => {
-                const activeCategory = document.querySelector('#category-filter .nav-link.active').getAttribute('data-bs-target-category');
-                const searchTerm = searchInput.value.toLowerCase();
-
-                productCards.forEach(card => {
-                    const cardCategory = card.getAttribute('data-category-id');
-                    const cardName = card.querySelector('.card-title').textContent.toLowerCase();
-
-                    // Condição de Categoria
-                    const categoryMatch = (activeCategory === 'all' || activeCategory === cardCategory);
-
-                    // Condição de Busca
-                    const searchMatch = (cardName.includes(searchTerm));
-
-                    // Mostrar ou esconder
-                    if (categoryMatch && searchMatch) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            };
-
-            // Adiciona evento de clique aos links de categoria
-            categoryLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    // Remove 'active' de todos
-                    categoryLinks.forEach(l => l.classList.remove('active'));
-                    // Adiciona 'active' ao clicado
-                    e.target.classList.add('active');
-                    filterProducts();
-                });
-            });
-
-            // Adiciona evento de "digitar" na busca
-            searchInput.addEventListener('input', filterProducts);
-
-            // --- 2. LÓGICA DE ADICIONAR AO CARRINHO ---
-
-            productGrid.addEventListener('click', (e) => {
-                const clickedCard = e.target.closest('.product-clickable');
-                if (!clickedCard) return; // Não foi um card de produto clicável
-
-                const product = {
-                    id: clickedCard.getAttribute('data-product-id'),
-                    name: clickedCard.getAttribute('data-product-name'),
-                    price: parseFloat(clickedCard.getAttribute('data-product-price'))
-                };
-
-                addToCart(product);
-            });
-
-            const addToCart = (product) => {
-                // Esconde a mensagem de carrinho vazio
-                if (cartEmptyMessage) {
-                    cartEmptyMessage.style.display = 'none';
-                }
-
-                // Verifica se o item já está no carrinho
-                const existingItem = cart.find(item => item.id === product.id);
-
-                if (existingItem) {
-                    // Se existe, só aumenta a quantidade
-                    existingItem.quantity++;
-                } else {
-                    // Se não existe, adiciona com quantidade 1
-                    product.quantity = 1;
-                    cart.push(product);
-                }
-
-                updateCartUI();
-            };
-
-            // --- 3. LÓGICA DE ATUALIZAR O CARRINHO (UI) ---
-
-            const updateCartUI = () => {
-                // Limpa a lista antes de redesenhar
-                cartItemsList.innerHTML = '';
-
-                let subtotal = 0;
+            if (cart.length === 0) {
+                emptyMsg.classList.remove('d-none');
+                emptyMsg.classList.add('d-flex');
+                document.getElementById('btn-pendencia').classList.add('d-none');
+            } else {
+                emptyMsg.classList.add('d-none');
+                emptyMsg.classList.remove('d-flex');
+                document.getElementById('btn-pendencia').classList.remove('d-none');
 
                 cart.forEach(item => {
                     const itemTotal = item.price * item.quantity;
                     subtotal += itemTotal;
+                    totalItems += item.quantity;
 
                     const li = document.createElement('li');
-                    // Correção de layout com flex-grow-1
-                    li.className = 'list-group-item d-flex align-items-center';
+                    li.className = 'cart-item-modern';
                     li.innerHTML = `
-                        <button class="btn btn-sm btn-outline-danger border-0 btn-dim-qtd" data-product-id="${item.id}">
-                            <i class="bi bi-dash-circle"></i>
-                        </button>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-0">${item.name}</h6>
-                            <small class="text-muted">Qtd: ${item.quantity} x ${formatCurrency(item.price)}</small>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 text-dark small fw-bold text-truncate" style="max-width: 180px;">${item.name}</h6>
+                            <div class="small text-muted">${formatCurrency(item.price)} uni.</div>
                         </div>
-                        <span class="fw-bold mx-3">${formatCurrency(itemTotal)}</span>
-                        <button class="btn btn-sm btn-outline-danger border-0 btn-remove-item" data-product-id="${item.id}">
-                            <i class="bi bi-trash-fill"></i>
+                        <div class="d-flex flex-column align-items-end">
+                            <div class="cart-controls mb-1">
+                                <button class="btn-circle-xs btn-dim-qtd" data-product-id="${item.id}"><i class="bi bi-dash"></i></button>
+                                <span class="mx-2 small fw-bold" style="min-width: 15px; text-align:center;">${item.quantity}</span>
+                                <button class="btn-circle-xs btn-add-qtd" data-product-id="${item.id}"><i class="bi bi-plus"></i></button>
+                            </div>
+                            <span class="fw-bold text-primary small">${formatCurrency(itemTotal)}</span>
+                        </div>
+                        <button class="btn btn-link text-danger p-0 ms-2 btn-remove-item" data-product-id="${item.id}">
+                            <i class="bi bi-x-circle"></i>
                         </button>
                     `;
-                    cartItemsList.appendChild(li);
+                    cartList.appendChild(li);
                 });
-
-                // Atualiza os totais
-                cartSubtotal.textContent = formatCurrency(subtotal);
-                recalcularTotal(); // Já recalcula o total com desconto
-
-                // Se o carrinho ficar vazio, mostra a mensagem
-                if (cart.length === 0 && cartEmptyMessage) {
-                    cartItemsList.appendChild(cartEmptyMessage);
-                    cartEmptyMessage.style.display = 'block';
-                }
-
-                // Mostra o botao do da Pendencia
-                const btnPendencia = document.getElementById('btn-pendencia');
-                    if (cart.length > 0) {
-                        btnPendencia.classList.remove('d-none');
-                    } else {
-                        btnPendencia.classList.add('d-none');
-                    }
-            };
-
-            // --- 4. LÓGICA DE REMOVER DO CARRINHO ---
-
-            cartItemsList.addEventListener('click', (e) => {
-                const removeButton = e.target.closest('.btn-remove-item');
-                if (removeButton) {
-                    const productId = removeButton.getAttribute('data-product-id');
-
-                    // Remove o item do array 'cart'
-                    cart = cart.filter(item => item.id !== productId);
-
-                    updateCartUI();
-                }
-                const tirarQtd = e.target.closest('.btn-dim-qtd');
-                if(tirarQtd){
-                    const productId = tirarQtd.getAttribute('data-product-id');
-                    var product = cart.find(prod => prod.id === productId);
-                    if(product){
-                        product.quantity--;
-                        if(product.quantity === 0){
-                            cart = cart.filter(item => item.id !== productId);
-                        }
-                    }
-                    updateCartUI();
-                }
-            });
-
-            // --- 5. LÓGICA DE FINALIZAR VENDA ---
-            document.getElementById('btn-finish-sale').addEventListener('click', () => {
-                if(cart.length === 0) {
-                    const btnFinishSale = document.getElementById('btn-finish-sale');
-                    const modalSemProduto = new bootstrap.Modal(document.getElementById('modalPagamentoSemProduto'));
-                    modalSemProduto.show();
-                    return;
-                }
-
-                const btnFinish = document.getElementById('btn-finish-sale');
-                const modalFinalizar = new bootstrap.Modal(document.getElementById('modalPagamento'));
-                modalFinalizar.show();
-
-                // Limpar carrinho após sucesso
-                // cart = [];
-                // updateCartUI();
-            });
-
-            const modalFecharEl = document.getElementById('modalConfirmarFechamento');
-            if (modalFecharEl) {
-                const modalFechar = new bootstrap.Modal(modalFecharEl);
-
-                // 1. Botão que ABRE o modal (está correto)
-                const btnAbrirModalFechar = document.getElementById('btn-abrir-modal-fechar');
-                if (btnAbrirModalFechar) {
-                    btnAbrirModalFechar.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        modalFechar.show();
-                    });
-                }
-
-                // 2. Pegamos o FORMULÁRIO e o BOTÃO de confirmação
-                const formFecharCaixa = document.getElementById('form-fechar-caixa');
-                const btnConfirmarFechar = document.getElementById('btn-confirmar-fechar');
-
-                if (formFecharCaixa && btnConfirmarFechar) {
-
-                    // 3. MUDANÇA: Escutamos o 'submit' DO FORMULÁRIO
-                    formFecharCaixa.addEventListener('submit', () => {
-
-                        // 4. AGORA sim desabilitamos o botão.
-                        // A submissão já foi iniciada e não será cancelada.
-                        btnConfirmarFechar.disabled = true;
-                        btnConfirmarFechar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fechando...';
-                    });
-                }
             }
+
+            countBadge.textContent = `${totalItems} itens`;
+            document.getElementById('cart-subtotal').textContent = formatCurrency(subtotal);
+            recalcularTotalComDesconto(subtotal);
+        };
+
+        const recalcularTotalComDesconto = (subtotal) => {
+            const descInput = document.getElementById('desconto-pagamento');
+            const desconto = parseFloat(descInput.value) || 0;
+            const total = Math.max(subtotal - desconto, 0);
+            document.getElementById('cart-total').textContent = formatCurrency(total);
+        };
+
+        document.getElementById('desconto-pagamento').addEventListener('input', () => {
+            const subStr = document.getElementById('cart-subtotal').textContent;
+            const subVal = parseFloat(subStr.replace('R$','').replace(/\./g,'').replace(',','.')) || 0;
+            recalcularTotalComDesconto(subVal);
         });
 
+        document.getElementById('cart-items').addEventListener('click', (e) => {
+            const id = e.target.closest('button')?.getAttribute('data-product-id');
+            if(!id) return;
+            if (e.target.closest('.btn-remove-item')) {
+                cart = cart.filter(i => i.id !== id);
+            } else if (e.target.closest('.btn-dim-qtd')) {
+                const item = cart.find(i => i.id === id);
+                if(item) { item.quantity--; if(item.quantity === 0) cart = cart.filter(i => i.id !== id); }
+            } else if (e.target.closest('.btn-add-qtd')) {
+                const item = cart.find(i => i.id === id);
+                if(item) item.quantity++;
+            } else return;
+            updateCartUI();
+        });
 
-        document.getElementById('btnAddForma').addEventListener('click', () => {
-            const container = document.getElementById('formasPagamentoContainer');
-            const valorPagar = document.getElementById('total-pagar').textContent
-            const btn = document.getElementById('btnAddForma')
-
-            const novaForma = document.createElement('div');
-            novaForma.classList.add('row', 'mb-2', 'forma-pagamento', 'small'); // Adicionado .small
-
-            if(valorPagar != "R$ 0,00")
-            {
-
-            novaForma.innerHTML = `
-                <div class="col-md-4">
-                    <select class="form-control form-control-sm" name="TipoPagamentoId">
-                        ${document.querySelector('select[name="TipoPagamentoId"]').innerHTML}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="number" step="0.01" class="form-control form-control-sm pagamento" name="ValorPagamentos" placeholder="0,00">
-                </div>
-                <div class="col-md-1 d-flex align-items-end">
-                   <button type="button" class="btn btn-danger btn-sm btn-remove"><i class="bi bi-trash-fill"></i></button>
-                </div>
-            `;
-
+        // --- PAGAMENTO ---
+        document.getElementById('btn-finish-sale').addEventListener('click', () => {
+            if (cart.length === 0) {
+                new bootstrap.Modal(document.getElementById('modalPagamentoSemProduto')).show();
             } else {
-                btn.classList.add('d-none')
-
-                novaForma.innerHTML = `
-                <div>
-                    <span class="text-danger">O valor de pagamento é ${valorPagar}</span>
-                </div>`
-            }
-
-            container.appendChild(novaForma);
-        });
-
-        // Remover forma de pagamento
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('btn-remove')) {
-                e.target.closest('.forma-pagamento').remove();
+                subtotalModal();
+                new bootstrap.Modal(document.getElementById('modalPagamento')).show();
             }
         });
+
+        function getMoneyValue(text) {
+            return parseFloat(text.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+        }
+        function formatMoney(val) { return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 
         function subtotalModal() {
-            const valueCart = document.getElementById('cart-total').textContent;
-            const valueToModal = document.getElementById('total-value-cart');
-            const aPagar = document.getElementById("total-pagar");
-            valueToModal.textContent = valueCart
-            aPagar.textContent = valueCart
+            const val = document.getElementById('cart-total').textContent;
+            document.getElementById('resumo-total-venda').textContent = val;
+            document.getElementById('listaPagamentosContainer').innerHTML = `
+                 <div id="msg-sem-pagamento" class="text-center text-muted py-3 opacity-50">
+                    <small>Clique nas opções ao lado para adicionar.</small>
+                </div>`;
+            atualizarResumoFinanceiro();
         }
 
-        document.getElementById('modalPagamento').addEventListener('shown.bs.modal', () => {
-            const totalText = document.getElementById('cart-total').textContent
-                .replace(/[^\d,.-]/g, '')
-                .replace(',', '.');
-            const total = parseFloat(totalText) || 0;
+        window.adicionarLinhaPagamento = function(id, nome, iconClass) {
+            const container = document.getElementById('listaPagamentosContainer');
+            const msgVazio = document.getElementById('msg-sem-pagamento');
+            if(msgVazio) msgVazio.remove();
 
-            const restanteEl = document.getElementById("total-pagar");
-            const btn = document.getElementById('btnAddForma');
-            const btnRemove = document.getElementById('btn-remove-pagamento');
-            const container = document.getElementById('formasPagamentoContainer');
+            const totalVenda = getMoneyValue(document.getElementById('resumo-total-venda').textContent);
+            const totalJaPago = calcularTotalPagoNosInputs();
+            let restante = Math.max(totalVenda - totalJaPago, 0);
 
-            // 🔹 Função que mostra/esconde o botão de adicionar forma
-            function atualizarBotao() {
-                const valor = restanteEl.textContent.trim();
-                if (valor === "R$ 0,00" || valor === "0,00") {
-                    btn.classList.add('d-none'); // esconde botão
-                } else {
-                    btn.classList.remove('d-none'); // mostra botão
-                }
-            }
-
-            function atualizarRemove() {
-            const inputs = container.querySelectorAll('input[name="ValorPagamentos"]');
-            inputs.forEach((inp, index) => {
-                const btnRemove = inp.closest('.forma-pagamento')?.querySelector('.btn-remove');
-                if (btnRemove) {
-                    if (inputs.length > 1) {
-                        btnRemove.classList.remove('d-none'); // mostra se tiver 2 ou mais
-                    } else {
-                        btnRemove.classList.add('d-none'); // esconde se só tiver 1 campo
-                    }
-                }
-            });
+            const novoId = 'pag_' + Date.now();
+            const div = document.createElement('div');
+            div.className = 'payment-row-item';
+            div.id = novoId;
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex align-items-center small">
+                        <i class="bi ${iconClass} me-2 text-primary"></i>
+                        <span class="fw-bold">${nome}</span>
+                    </div>
+                    <button type="button" class="btn btn-sm text-danger p-0" onclick="removerLinhaPagamento('${novoId}')">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </div>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0">R$</span>
+                    <input type="hidden" name="TipoPagamentoId" value="${id}">
+                    <input type="number" step="0.01" class="form-control form-control-sm fw-bold text-end border-start-0"
+                           name="ValorPagamentos" value="${restante.toFixed(2)}"
+                           oninput="atualizarResumoFinanceiro()">
+                </div>
+            `;
+            container.appendChild(div);
+            atualizarResumoFinanceiro();
         }
 
-            // 🔹 Função que recalcula o restante com base nos inputs
-            function atualizarRestante() {
-                const inputs = document.querySelectorAll('input[name="ValorPagamentos"]');
-                let soma = 0;
-                inputs.forEach(input => {
-                    soma += parseFloat(input.value) || 0;
-                });
+        window.removerLinhaPagamento = function(id) {
+            document.getElementById(id).remove();
+            atualizarResumoFinanceiro();
+        }
 
-                const restante = Math.max(total - soma, 0);
-                restanteEl.textContent = `R$ ${restante.toFixed(2).replace('.', ',')}`;
-                atualizarBotao(); // atualiza o estado do botão
-                atualizarRemove()
+        window.atualizarResumoFinanceiro = function() {
+            const totalVenda = getMoneyValue(document.getElementById('resumo-total-venda').textContent);
+            const totalPago = calcularTotalPagoNosInputs();
+            document.getElementById('resumo-total-pago').textContent = formatMoney(totalPago);
+
+            const restante = totalVenda - totalPago;
+            const elRestante = document.getElementById('resumo-restante');
+            const labelRestante = document.getElementById('label-restante');
+            const btnConfirmar = document.getElementById('btnConfirmarModal');
+
+            if (restante > 0.01) {
+                elRestante.textContent = formatMoney(restante);
+                elRestante.className = 'display-5 fw-bold text-danger mb-0';
+                labelRestante.textContent = 'FALTAM';
+                btnConfirmar.disabled = true;
+            } else if (restante < -0.01) {
+                elRestante.textContent = formatMoney(Math.abs(restante));
+                elRestante.className = 'display-5 fw-bold text-primary mb-0';
+                labelRestante.textContent = 'TROCO';
+                btnConfirmar.disabled = false;
+            } else {
+                elRestante.textContent = 'R$ 0,00';
+                elRestante.className = 'display-5 fw-bold text-success mb-0';
+                labelRestante.textContent = 'CONCLUÍDO';
+                btnConfirmar.disabled = false;
             }
+        }
 
-            // 🔹 Quando altera algum valor nos inputs, recalcula o restante
-            container.addEventListener('input', (e) => {
-                if (e.target.name === 'ValorPagamentos') {
-                    atualizarRestante();
-                }
-            });
+        function calcularTotalPagoNosInputs() {
+            const inputs = document.querySelectorAll('input[name="ValorPagamentos"]');
+            let soma = 0;
+            inputs.forEach(inp => soma += parseFloat(inp.value) || 0);
+            return soma;
+        }
 
-            // 🔹 Quando clica no botão de remover forma de pagamento
-            container.addEventListener('click', (e) => {
-                if (e.target.closest('.btn-remove')) {
-                    const linha = e.target.closest('.forma-pagamento');
-                    linha.remove();
-                    atualizarRestante(); // recalcula e reexibe botão se necessário
-                }
-            });
+        // PREPARAÇÃO DO ENVIO - CORREÇÃO DO BUG 400.00 -> 40000
+        function prepareForm(form) {
+            form.querySelectorAll('input[name^="ProdutosVenda"]').forEach(e => e.remove());
 
-            // Inicializa ao abrir o modal
-
-            atualizarRestante();
-        });
-
-                document.getElementById("formPendencia").addEventListener("submit", function (event) {
-            event.preventDefault(); // <- Impede envio precoce !!
-
-            const form = this;
-
-            // Remove inputs antigos
-            form.querySelectorAll('input[name^="ItensVendaIds"], input[name^="Quantidades"]').forEach(input => input.remove());
-
-            // Pega total
+            // CORREÇÃO AQUI: Remover pontos de milhar (.), manter vírgula (,)
             const totalText = document.getElementById('cart-total').textContent;
+            // Ex: "R$ 1.234,56" -> "1234,56"
+            const totalClean = totalText.replace("R$", "").replace(/\./g, "").trim();
 
-            const valorSanitizado = totalText
-                .replace("R$", "")
-                .replace(/\s/g, "")
-                .replace(/\./g, "")
+            const inTotalPen = form.querySelector('#valorTotal');
+            const inTotalPag = form.querySelector('#valorTotalPagamento');
 
-            document.getElementById("valorTotal").value = valorSanitizado;
+            if(inTotalPen) inTotalPen.value = totalClean;
+            if(inTotalPag) inTotalPag.value = totalClean;
 
-            console.log("ValorTotal enviado:", valorSanitizado);
-
-            // Loop dos itens
-            cart.forEach((item, index) => {
-                const inputId = document.createElement('input');
-                inputId.type = 'hidden';
-                inputId.name = `ProdutosVenda[${index}].ProdutoId`;
-                inputId.value = item.id;
-                form.appendChild(inputId);
-
-                const inputQtd = document.createElement('input');
-                inputQtd.type = 'hidden';
-                inputQtd.name = `ProdutosVenda[${index}].Quantidade`;
-                inputQtd.value = item.quantity;
-                form.appendChild(inputQtd);
-
-                console.log(`Item adicionado: ID=${item.id}, Qtd=${item.quantity}`);
+            cart.forEach((item, i) => {
+                const id = document.createElement('input'); id.type='hidden'; id.name=`ProdutosVenda[${i}].ProdutoId`; id.value=item.id; form.appendChild(id);
+                const qt = document.createElement('input'); qt.type='hidden'; qt.name=`ProdutosVenda[${i}].Quantidade`; qt.value=item.quantity; form.appendChild(qt);
             });
+        }
 
-            // Agora sim: envia o form corretamente
-            form.submit();
+        document.getElementById("formPendencia")?.addEventListener("submit", function(e) {
+            e.preventDefault(); prepareForm(this); this.submit();
+        });
+        document.getElementById("formPagamento")?.addEventListener("submit", function(e) {
+            prepareForm(this);
         });
 
-        document.getElementById("formPagamento").addEventListener("submit", function () {
+        // Lógica Modal Pendência
+        const btnAbrirPendencia = document.getElementById('btn-abrir-modal');
+        const modalPendencia = new bootstrap.Modal(document.getElementById('modalPendencia'));
+        if(btnAbrirPendencia) btnAbrirPendencia.addEventListener('click', () => modalPendencia.show());
 
-            const form = this;
+        const btnModalFechar = document.getElementById('btn-abrir-modal-fechar');
+        if(btnModalFechar) btnModalFechar.addEventListener('click', () => new bootstrap.Modal(document.getElementById('modalConfirmarFechamento')).show());
 
-            // 1. Limpa quaisquer inputs de ItemVendaIds e Quantidades anteriores (para evitar duplicatas)
-            form.querySelectorAll('input[name^="ItensVendaIds"], input[name^="Quantidades"]').forEach(input => input.remove());
-
-            // Pega total do carrinho
-            const totalText = document.getElementById('total-value-cart').textContent;
-            console.log(totalText)
-            const valorSanitizado = totalText
-                .replace("R$", "")
-                .replace(/\s/g, "")
-                .replace(/\./g, "")
-
-            document.getElementById("valorTotalPagamento").value = valorSanitizado;
-
-            cart.forEach((item, index) => {
-                // Input para o ID do Produto (ou Id do Item de Venda, se o nome for diferente no backend)
-                const inputId = document.createElement('input');
-                inputId.type = 'hidden';
-                inputId.name = `ProdutosVenda[${index}].ProdutoId`; // Ou 'ItensVenda[${index}].ProdutoId' dependendo do seu Model Binder no C#
-                inputId.value = item.id;
-                form.appendChild(inputId);
-
-                // Input para a Quantidade
-                const inputQtd = document.createElement('input');
-                inputQtd.type = 'hidden';
-                inputQtd.name = `ProdutosVenda[${index}].Quantidade`; // Ou 'ItensVenda[${index}].Quantidade'
-                inputQtd.value = item.quantity;
-                form.appendChild(inputQtd);
+        // Pesquisa Cliente
+        const btnPesquisar = document.getElementById('btnPesquisar');
+        if(btnPesquisar) {
+            btnPesquisar.addEventListener('click', () => {
+                const termo = document.getElementById('pesquisaCliente').value.toLowerCase();
+                const linhas = document.querySelectorAll('#listaClientes tr');
+                let found = false;
+                linhas.forEach(tr => {
+                    const match = tr.innerText.toLowerCase().includes(termo);
+                    tr.style.display = match ? '' : 'none';
+                    if(match) found = true;
+                });
+                document.getElementById('msg-nenhum-cliente').classList.toggle('d-none', found);
             });
-
+        }
+        document.getElementById('listaClientes').addEventListener('click', (e) => {
+            const tr = e.target.closest('tr');
+            if(!tr) return;
+            document.querySelectorAll('#listaClientes tr').forEach(r => r.classList.remove('table-active'));
+            tr.classList.add('table-active');
+            document.getElementById('clienteSelecionado').value = tr.cells[0].textContent;
+            const divNome = document.getElementById('clienteSelecionadoNome');
+            divNome.textContent = "Cliente: " + tr.cells[1].textContent;
+            divNome.classList.remove('d-none');
+            document.getElementById('btnConfirmarPendencia').disabled = false;
         });
-
 
     </script>
-
-    <style>
-        .over-scroll {
-            overflow: scroll;
-            scroll-behavior: smooth;
-            /* Para Firefox */
-            scrollbar-width: none;
-            /* Para Internet Explorer e Edge (versões antigas) */
-            -ms-overflow-style: none;
-        }
-        .over-scroll::-webkit-scrollbar {
-            display: none;
-        }
-        .product-clickable {
-            box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important;
-            transform: translateY(0);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .product-clickable:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
-        }
-    </style>
 }
