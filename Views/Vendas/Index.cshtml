@@ -1,68 +1,128 @@
 ﻿@model IEnumerable<PDV.Models.Vendas>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Vendas";
 }
 
-<h1>Vendas</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">@ViewData["Title"]</h1>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ValorTotal)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataEntrada)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataAtualizacao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TipoPagamento)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Cliente)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Fechamento)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ValorTotal)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataEntrada)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataAtualizacao)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TipoPagamento.Descricao)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Cliente.CPF)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Fechamento.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Produtos Cadastrados</h5>
+        <a asp-action="Index" asp-controller="Categorias" class="btn btn-success shadow-sm">
+            <i class="bi bi-tags-fill me-2"></i>Categorias
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr class="text-center">
+                        <th>
+                            @Html.DisplayNameFor(model => model.DataEntrada)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.DataAtualizacao)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Cliente.CPF)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Cliente.Nome)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.ValorTotal)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.TipoPagamento)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Fechamento)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Status)
+                        </th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="text-center">
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DataEntrada)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.DataAtualizacao)
+                            </td>
+                            <td data-format-cpf>
+                                @Html.DisplayFor(modelItem => item.Cliente.CPF)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Cliente.Nome)
+                            </td>
+                            <td class="text-center">
+                                @Html.DisplayFor(modelItem => item.ValorTotal)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.TipoPagamento.Descricao)
+                            </td>
+                            <td class="text-center">
+                                @Html.DisplayFor(modelItem => item.Fechamento.Id)
+                            </td>
+                            <td>
+                                @if (item.Status == 2)
+                                {
+                                    <p>Pendente</p>
+                                }
+                                else
+                                {
+                                    <p>Finalizado</p>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Detalhes">
+                                    <i class="bi bi-search"></i>
+                                </a>
+                                @if (item.Status == 2)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal"
+                                            data-bs-id="@item.Id"
+                                            data-nome-base="venda"
+                                            data-bs-url="@Url.Action("Delete", "Vendas")">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<partial name="_DeleteModal" />
+
+<script>
+      function formatCPF(value) {
+        return value
+            .replace(/\D/g, "")                 // Remove tudo que não for número
+            .replace(/(\d{3})(\d)/, "$1.$2")    // Coloca o primeiro ponto
+            .replace(/(\d{3})(\d)/, "$1.$2")    // Segundo ponto
+            .replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Hífen
+    }
+
+        document.addEventListener("DOMContentLoaded", () => {
+        const campos = document.querySelectorAll("[data-format-cpf]");
+
+        campos.forEach(campo => {
+            const cpf = campo.textContent.trim();
+            campo.textContent = formatCPF(cpf);
+        });
+    });
+</script>

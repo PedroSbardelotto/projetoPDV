@@ -40,10 +40,20 @@ namespace PDV.Controllers
                 .Include(v => v.Fechamento)
                 .Include(v => v.TipoPagamento)
                 .Include(v => v.UsuarioEmpresa)
+                .Include(v => v.ProdutosVenda)
+                    .ThenInclude(pv => pv.Produto)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (vendas == null)
             {
                 return NotFound();
+            }
+
+            var somaValores = vendas.ProdutosVenda.Sum(x => x.Produto.Preco * x.Quantidade);
+
+            if (vendas.ValorTotal != somaValores)
+            {
+                var novoValor = somaValores - vendas.ValorTotal;
+                vendas.ValorTotal = somaValores - novoValor;
             }
 
             return View(vendas);

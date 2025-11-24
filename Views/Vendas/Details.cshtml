@@ -1,66 +1,123 @@
 ﻿@model PDV.Models.Vendas
+@using System.Globalization
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalhes da Venda";
+
+    var culture = new CultureInfo("pt-BR");
 }
 
-<h1>Details</h1>
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
 
-<div>
-    <h4>Vendas</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ValorTotal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ValorTotal)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DataEntrada)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DataEntrada)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DataAtualizacao)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DataAtualizacao)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TipoPagamento)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TipoPagamento.Descricao)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Cliente)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Cliente.CPF)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UsuarioEmpresa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UsuarioEmpresa.CNPJ)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Fechamento)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Fechamento.Id)
-        </dd>
-    </dl>
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">@ViewData["Title"]: @Model.Id</h4>
+
+                @if (Model.Status == 2)
+                {
+                    <span class="badge bg-secondary">Pendente</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">Finalizado</span>
+                }
+            </div>
+
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DataEntrada)</dt>
+                    <dd class="col-sm-9">@Html.DisplayFor(model => model.DataEntrada)</dd>
+
+                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DataAtualizacao)</dt>
+                    <dd class="col-sm-9">@Html.DisplayFor(model => model.DataAtualizacao)</dd>
+
+                    @if(Model.Cliente != null)
+                    {
+                        <hr class="my-3">
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Cliente.CPF)</dt>
+                        <dd data-format-cpf class="col-sm-9">@Html.DisplayFor(model => model.Cliente.CPF)</dd>
+
+                        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Cliente.Nome)</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Cliente.Nome)</dd>
+                    }
+                    
+                    <hr class="my-3">
+                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ValorTotal)</dt>
+                    <dd class="col-sm-9">@Html.DisplayFor(model => model.ValorTotal)</dd>
+
+                    <hr class="my-3">
+                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Fechamento.DataAbertura)</dt>
+                    <dd class="col-sm-9">@Html.DisplayFor(model => model.Fechamento.DataAbertura)</dd>
+
+                    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Fechamento.DataFechamento)</dt>
+                    <dd class="col-sm-9">@Html.DisplayFor(model => model.Fechamento.DataFechamento)</dd>
+
+                    <hr class="my-3">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr class="text-center">
+                                <th>
+                                    Código
+                                </th>
+                                <th>
+                                    Nome
+                                </th>
+                                <th>
+                                    Quantidade
+                                </th>
+                                <th>
+                                    Preço
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ProdutosVenda)
+                            {
+                                <tr class="text-center">
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Id)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Produto.Nome)
+                                    </td>
+                                    <td data-format-cpf>
+                                        @Html.DisplayFor(modelItem => item.Quantidade)
+                                    </td>
+                                    <td>
+                                        @((item.Produto.Preco * item.Quantidade).ToString("C", culture))
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </dl>
+            </div>
+
+            <div class="card-footer d-flex justify-content-end gap-2">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Voltar à Lista
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+<script>
+      function formatCPF(value) {
+        return value
+            .replace(/\D/g, "")                 // Remove tudo que não for número
+            .replace(/(\d{3})(\d)/, "$1.$2")    // Coloca o primeiro ponto
+            .replace(/(\d{3})(\d)/, "$1.$2")    // Segundo ponto
+            .replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Hífen
+    }
+
+        document.addEventListener("DOMContentLoaded", () => {
+        const campos = document.querySelectorAll("[data-format-cpf]");
+
+        campos.forEach(campo => {
+            const cpf = campo.textContent.trim();
+            campo.textContent = formatCPF(cpf);
+        });
+    });
+</script>
