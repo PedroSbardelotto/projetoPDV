@@ -10,6 +10,7 @@
     // 1. Vendas Finalizadas (Status 1) -> Dinheiro que entrou ou Cartão passado
     var vendasFinalizadas = Model.Vendas.Where(v => v.Status == 1).ToList();
     var totalFaturadoReal = vendasFinalizadas.Sum(v => v.ValorTotal);
+    var totalEmDinheiro = vendasFinalizadas.Where(v => v.TipoPagamento.Descricao == "Dinheiro").Sum(f=> f.ValorTotal);
 
     // 2. Vendas Pendentes (Status 2) -> "Caixinha" / Fiado (Não entra na gaveta física)
     var vendasPendentes = Model.Vendas.Where(v => v.Status == 2).ToList();
@@ -21,7 +22,7 @@
     // O esperado físico é: O que tinha na abertura + O que vendeu de verdade (Status 1)
     // Nota: Se você quiser separar Dinheiro de Cartão no futuro, precisará filtrar por TipoPagamento aqui.
     // Por enquanto, assumimos que "Valor em Caixa" inclui comprovantes de cartão somados.
-    var valorEmCaixaEsperado = valorAbertura + totalFaturadoReal;
+    var valorEmCaixaEsperado = valorAbertura + totalEmDinheiro;
 
     var estaFechado = Model.Fechamento.DataFechamento.HasValue;
 
@@ -358,7 +359,6 @@
 
 @section Scripts {
     <script>
-        // Loading no botão
         const formFechar = document.getElementById('form-fechar-caixa-details');
         if (formFechar) {
             formFechar.addEventListener('submit', function () {
