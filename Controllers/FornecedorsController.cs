@@ -75,6 +75,7 @@ namespace PDV.Controllers
 
             if (ModelState.IsValid)
             {
+                fornecedor.CNPJ = fornecedor.CNPJ.Replace(".", "").Replace(".", "").Replace("/", "").Replace("-", "");
                 _context.Add(fornecedor);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
