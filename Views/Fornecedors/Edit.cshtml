@@ -1,74 +1,119 @@
 ﻿@model PDV.Models.Fornecedor
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Fornecedor";
 }
 
-<h1>Edit</h1>
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-dark mb-0 fw-bold">Editar Fornecedor</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
 
-<h4>Fornecedor</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="NomeRazao" class="control-label"></label>
-                <input asp-for="NomeRazao" class="form-control" />
-                <span asp-validation-for="NomeRazao" class="text-danger"></span>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3 text-primary">
+                    <i class="bi bi-pencil-square fs-4"></i>
+                </div>
+                <div>
+                    <h5 class="card-title mb-0 text-primary fw-bold">Atualizar Dados</h5>
+                    <small class="text-muted">Modifique as informações abaixo conforme necessário.</small>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="NomeFantasia" class="control-label"></label>
-                <input asp-for="NomeFantasia" class="form-control" />
-                <span asp-validation-for="NomeFantasia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CNPJ" class="control-label"></label>
-                <input asp-for="CNPJ" class="form-control" />
-                <span asp-validation-for="CNPJ" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="InscricaoEstadual" class="control-label"></label>
-                <input asp-for="InscricaoEstadual" class="form-control" />
-                <span asp-validation-for="InscricaoEstadual" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Endereco" class="control-label"></label>
-                <input asp-for="Endereco" class="form-control" />
-                <span asp-validation-for="Endereco" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Contato" class="control-label"></label>
-                <input asp-for="Contato" class="form-control" />
-                <span asp-validation-for="Contato" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataEntrada" class="control-label"></label>
-                <input asp-for="DataEntrada" class="form-control" />
-                <span asp-validation-for="DataEntrada" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataAtualizacao" class="control-label"></label>
-                <input asp-for="DataAtualizacao" class="form-control" />
-                <span asp-validation-for="DataAtualizacao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+
+            <hr class="mb-4" />
+
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="DataEntrada" />
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="NomeFantasia" class="form-label fw-bold small text-secondary">Nome Fantasia</label>
+                        <input asp-for="NomeFantasia" class="form-control" />
+                        <span asp-validation-for="NomeFantasia" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="NomeRazao" class="form-label fw-bold small text-secondary">Razão Social</label>
+                        <input asp-for="NomeRazao" class="form-control" />
+                        <span asp-validation-for="NomeRazao" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="CNPJ" class="form-label fw-bold small text-secondary">CNPJ</label>
+                        <input asp-for="CNPJ" class="form-control" />
+                        <span asp-validation-for="CNPJ" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="InscricaoEstadual" class="form-label fw-bold small text-secondary">Inscrição Estadual</label>
+                        <input asp-for="InscricaoEstadual" class="form-control" />
+                        <span asp-validation-for="InscricaoEstadual" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-bold small text-secondary">E-mail</label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Contato" class="form-label fw-bold small text-secondary">Telefone / Contato</label>
+                        <input asp-for="Contato" class="form-control" />
+                        <span asp-validation-for="Contato" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label asp-for="Endereco" class="form-label fw-bold small text-secondary">Endereço Completo</label>
+                        <input asp-for="Endereco" class="form-control" />
+                        <span asp-validation-for="Endereco" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="form-check form-switch p-3 bg-light rounded border d-flex align-items-center">
+                            <input class="form-check-input ms-0 me-3 fs-4"
+                                   type="checkbox"
+                                   id="Status"
+                                   name="Status"
+                                   value="true"
+                                   @(Model.Status.GetValueOrDefault() ? "checked" : "")
+                                   style="cursor: pointer;" />
+
+                            <input name="Status" type="hidden" value="false" />
+
+                            <div>
+                                <label class="form-check-label fw-bold text-dark" for="Status" style="cursor: pointer;">Fornecedor Ativo</label>
+                                <div class="small text-muted">Desative esta opção para arquivar o fornecedor sem excluí-lo.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 pt-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-2"></i>Salvar Alterações
+                    </button>
+                    <a asp-action="Index" class="btn btn-light text-secondary px-4 border">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -1,73 +1,91 @@
 ﻿@model PDV.Models.Fornecedor
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Cadastrar Fornecedor";
 }
 
-<h1>Create</h1>
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-dark mb-0 fw-bold">Cadastrar Fornecedor</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Voltar
+        </a>
+    </div>
 
-<h4>Fornecedor</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="NomeRazao" class="control-label"></label>
-                <input asp-for="NomeRazao" class="form-control" />
-                <span asp-validation-for="NomeRazao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NomeFantasia" class="control-label"></label>
-                <input asp-for="NomeFantasia" class="form-control" />
-                <span asp-validation-for="NomeFantasia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CNPJ" class="control-label"></label>
-                <input asp-for="CNPJ" class="form-control" />
-                <span asp-validation-for="CNPJ" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="InscricaoEstadual" class="control-label"></label>
-                <input asp-for="InscricaoEstadual" class="form-control" />
-                <span asp-validation-for="InscricaoEstadual" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Endereco" class="control-label"></label>
-                <input asp-for="Endereco" class="form-control" />
-                <span asp-validation-for="Endereco" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Contato" class="control-label"></label>
-                <input asp-for="Contato" class="form-control" />
-                <span asp-validation-for="Contato" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataEntrada" class="control-label"></label>
-                <input asp-for="DataEntrada" class="form-control" />
-                <span asp-validation-for="DataEntrada" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataAtualizacao" class="control-label"></label>
-                <input asp-for="DataAtualizacao" class="form-control" />
-                <span asp-validation-for="DataAtualizacao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-4 text-primary fw-bold">Dados do Fornecedor</h5>
+            <hr class="mb-4" />
+
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="NomeFantasia" class="form-label fw-bold small text-secondary">Nome Fantasia</label>
+                        <input asp-for="NomeFantasia" class="form-control" placeholder="Ex: Mercado Central" />
+                        <span asp-validation-for="NomeFantasia" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="NomeRazao" class="form-label fw-bold small text-secondary">Razão Social</label>
+                        <input asp-for="NomeRazao" class="form-control" placeholder="Ex: Mercado Central LTDA" />
+                        <span asp-validation-for="NomeRazao" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="CNPJ" class="form-label fw-bold small text-secondary">CNPJ</label>
+                        <input asp-for="CNPJ" class="form-control" placeholder="00.000.000/0000-00" />
+                        <span asp-validation-for="CNPJ" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="InscricaoEstadual" class="form-label fw-bold small text-secondary">Inscrição Estadual</label>
+                        <input asp-for="InscricaoEstadual" class="form-control" />
+                        <span asp-validation-for="InscricaoEstadual" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-bold small text-secondary">E-mail</label>
+                        <input asp-for="Email" class="form-control" type="email" placeholder="contato@empresa.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Contato" class="form-label fw-bold small text-secondary">Telefone / Contato</label>
+                        <input asp-for="Contato" class="form-control" placeholder="(00) 00000-0000" />
+                        <span asp-validation-for="Contato" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label asp-for="Endereco" class="form-label fw-bold small text-secondary">Endereço Completo</label>
+                        <input asp-for="Endereco" class="form-control" placeholder="Rua, Número, Bairro, Cidade - UF" />
+                        <span asp-validation-for="Endereco" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <input type="hidden" asp-for="Status" value="true" />
+                <input type="hidden" asp-for="DataEntrada" value="@DateTime.Now" />
+                <input type="hidden" asp-for="DataAtualizacao" value="@DateTime.Now" />
+
+                <div class="d-flex gap-2 pt-2">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-lg me-2"></i>Salvar
+                    </button>
+                    <a asp-action="Index" class="btn btn-light text-secondary px-4 border">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
