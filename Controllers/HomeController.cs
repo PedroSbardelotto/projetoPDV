@@ -28,7 +28,7 @@ namespace PDV.Controllers
             homeViewModel.Categorias = _context.Categoria.ToList();
             homeViewModel.Produtos = _context.Produto.Where(p=> p.Status == true).ToList();
             homeViewModel.Clientes = _context.Cliente.ToList();
-            homeViewModel.Fechamento = _context.Fechamento.Where(f => f.DataAbertura.Date == DateTime.Today && f.DataFechamento == null).SingleOrDefault();
+            homeViewModel.Fechamento = _context.Fechamento.Where(f => f.DataFechamento == null).SingleOrDefault();
             ViewBag.TipoPagamentos = _context.TipoPagamento.ToList();
             return View(homeViewModel);
         }
@@ -36,14 +36,30 @@ namespace PDV.Controllers
         [HttpPost]
         public IActionResult AbrirCaixa(decimal valorInicial)
         {
-            _fechamentoService.AbrirNovoCaixa(valorInicial);
+            bool sucesso = _fechamentoService.AbrirNovoCaixa(valorInicial);
+            if (!sucesso)
+            {
+                TempData["Erro"] = "Já existe um caixa aberto! Encerre o anterior antes de abrir um novo.";
+            }
+            else
+            {
+                TempData["Sucesso"] = "Caixa aberto com sucesso!";
+            }
             return RedirectToAction("Index");
         }
 
         [HttpPost]
         public IActionResult FecharCaixa(decimal ValorFechamento)
         {
-            _fechamentoService.FecharCaixa(ValorFechamento);
+            bool sucesso = _fechamentoService.FecharCaixa(ValorFechamento);
+            if (!sucesso)
+            {
+                TempData["Erro"] = "Erro para fechar o caixa! Contate um profissional.";
+            }
+            else
+            {
+                TempData["Sucesso"] = "Caixa fechado com sucesso!";
+            }
             return RedirectToAction("Index");
         }
 

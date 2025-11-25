@@ -1,4 +1,5 @@
 ﻿using PDV.Models.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using PDV.Models;
 using PDV.Data;
 
@@ -11,8 +12,14 @@ namespace PDV.Services
         {
             _context = context;
         }
-        public void AbrirNovoCaixa(decimal valorInicial)
+
+        public bool AbrirNovoCaixa(decimal valorInicial)
         {
+            var caixaAberto = _context.Fechamento.Where(f => f.DataFechamento == null).SingleOrDefault();
+            if(caixaAberto != null)
+            {
+                return false;
+            }
             Fechamento aberturaCaixa = new Fechamento
             {
                 ValorAbertura = valorInicial,
@@ -20,22 +27,21 @@ namespace PDV.Services
             };
             _context.Fechamento.Add(aberturaCaixa);
             _context.SaveChanges();
+            return true;
         }
-        public void FecharCaixa(decimal ValorFechamento)
+        public bool FecharCaixa(decimal ValorFechamento)
         {
             var fechamentoCaixa = _context.Fechamento
-            .Where(f => f.DataAbertura.Date == DateTime.Today && f.DataFechamento == null)
+            .Where(f => f.DataFechamento == null)
             .SingleOrDefault();
 
-            if (fechamentoCaixa == null) { return; }
+            if (fechamentoCaixa == null) { return false; }
 
-            if (fechamentoCaixa != null)
-            {
-                fechamentoCaixa.ValorFechamento = ValorFechamento;
-                fechamentoCaixa.DataFechamento = DateTime.Now;
-                _context.Fechamento.Update(fechamentoCaixa);
-                _context.SaveChanges();
-            }
+            fechamentoCaixa.ValorFechamento = ValorFechamento;
+            fechamentoCaixa.DataFechamento = DateTime.Now;
+            _context.Fechamento.Update(fechamentoCaixa);
+            _context.SaveChanges();
+            return true;            
         }
 
     }
