@@ -1,0 +1,113 @@
+﻿@model PDV.Models.Vendas
+@using System.Globalization
+
+@{
+    Layout = null; // CRUCIAL: Remove o layout padrão do site
+    var culture = new CultureInfo("pt-BR");
+
+    // Lógica de Status (simplificada para impressão)
+    string statusTexto = Model.Status == 1 ? "APROVADO" : (Model.Status == 2 ? "PENDENTE" : "CANCELADO");
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <title>Comprovante #@Model.Id</title>
+    <!-- Importando Bootstrap apenas para estilização básica -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body {
+            background-color: #fff;
+            font-family: 'Courier New', Courier, monospace; /* Fonte estilo cupom */
+            padding: 20px;
+        }
+
+        .ticket {
+            width: 100%;
+            max-width: 300px; /* Largura padrão de impressora térmica (80mm aprox) */
+            margin: 0 auto;
+        }
+
+        .dashed-line {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+
+        .text-xs { font-size: 12px; }
+        .text-sm { font-size: 14px; }
+        .fw-bold { font-weight: bold; }
+        
+        /* Remove margens da impressora */
+        @@media print {
+            @@page { margin: 0; }
+            body { margin: 10px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket text-center text-uppercase">
+        
+        <!-- Cabeçalho -->
+        <div class="mb-3">
+            <h5 class="fw-bold mb-0">PDV SYSTEM</h5>
+            <span class="text-xs">Rua Exemplo, 123 - Centro</span><br />
+            <span class="text-xs">CNPJ: 00.000.000/0000-00</span>
+        </div>
+
+        <div class="dashed-line"></div>
+
+        <!-- Dados da Venda -->
+        <div class="text-start">
+            <div class="d-flex justify-content-between text-sm">
+                <span>DATA: @Model.DataEntrada.ToString("dd/MM/yyyy")</span>
+                <span>HORA: @Model.DataEntrada.ToString("HH:mm")</span>
+            </div>
+            <div class="text-sm mt-1">
+                COD. VENDA: <strong>#@Model.Id.ToString("D6")</strong>
+            </div>
+            <div class="text-sm mt-1">
+                CLIENTE: @(Model.Cliente != null ? Model.Cliente.Nome : "CONSUMIDOR FINAL")
+            </div>
+        </div>
+
+        <div class="dashed-line"></div>
+
+        <!-- Totais -->
+        <div class="d-flex justify-content-between align-items-center my-2">
+            <span class="fw-bold text-sm">TOTAL A PAGAR</span>
+            <span class="fs-4 fw-bold">@Model.ValorTotal.ToString("C", culture)</span>
+        </div>
+
+        <div class="text-start text-sm">
+            FORMA PAGTO: @(Model.TipoPagamento?.Descricao ?? "NÃO INFORMADO")
+        </div>
+        
+        <div class="text-start text-sm mt-1">
+            STATUS: <strong>@statusTexto</strong>
+        </div>
+
+        <div class="dashed-line"></div>
+
+        <!-- Rodapé -->
+        <div class="text-center mt-4">
+            <p class="text-xs mb-1">Obrigado pela preferência!</p>
+            <p class="text-xs text-muted">Este documento não possui valor fiscal.</p>
+        </div>
+        
+        <!-- Botão apenas para tela (some na impressão) -->
+        <button onclick="window.print()" class="btn btn-dark btn-sm w-100 mt-4 no-print">
+            <i class="bi bi-printer-fill me-2"></i>IMPRIMIR
+        </button>
+
+    </div>
+
+    <script>
+        window.onload = function() { window.print(); }
+    </script>
+</body>
+</html>

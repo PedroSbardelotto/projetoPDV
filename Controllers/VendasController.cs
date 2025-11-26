@@ -291,6 +291,15 @@ namespace PDV.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        public async Task<IActionResult> Comprovante(int? id)
+        {
+            if (id == null) return NotFound();
+            var venda = await _context.Vendas.Include(v => v.Cliente).Include(v => v.TipoPagamento).FirstOrDefaultAsync(m => m.Id == id);
+
+            if (venda == null) return NotFound();
+            return View(venda);
+        }
+
         private bool VendasExists(int id)
         {
             return (_context.Vendas?.Any(e => e.Id == id)).GetValueOrDefault();

@@ -181,16 +181,18 @@
                     </a>
                 </li>
             </ul>
-
-            <div class="p-3 border-top border-secondary border-opacity-25">
-                <div class="d-flex align-items-center text-white-50 small">
-                    <i class="bi bi-person-circle fs-4 me-2"></i>
-                    <div>
-                        <div class="text-white fw-bold">Operador</div>
-                        <span class="text-success online-dot">●</span> Online
+            
+            <a asp-action="ValidaInformacoes" asp-controller="UsuarioEmpresa" class="text-decoration-none d-block">
+                <div class="p-3 border-top border-secondary border-opacity-25">
+                    <div class="d-flex align-items-center text-white-50 small">
+                        <i class="bi bi-person-circle fs-4 me-2"></i>
+                        <div>
+                            <div class="text-white fw-bold">Operador</div>
+                            <span class="text-success online-dot">●</span> Online
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </nav>
 
         <main class="app-main">

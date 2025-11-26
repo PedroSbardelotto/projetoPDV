@@ -123,19 +123,6 @@
                                             <i class="bi bi-receipt"></i>
                                         </a>
 
-                                        @if (isConcluido)
-                                        {
-                                            <button type="button" class="btn btn-sm btn-white border text-danger"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#deleteModal"
-                                                    data-bs-id="@item.Id"
-                                                    data-bs-name="Venda #@item.Id"
-                                                    data-nome-base="venda"
-                                                    data-bs-url="@Url.Action("Delete", "Vendas")"
-                                                    title="Estornar/Excluir">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
-                                        }
                                     </div>
                                 </td>
                             </tr>

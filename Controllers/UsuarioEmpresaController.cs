@@ -35,7 +35,6 @@ namespace PDV.Controllers
             }
 
             var usuarioEmpresa = await _context.UsuarioEmpresa
-                .Include(u => u.ChaveAcesso)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (usuarioEmpresa == null)
             {
@@ -44,11 +43,26 @@ namespace PDV.Controllers
 
             return View(usuarioEmpresa);
         }
+        public async Task<IActionResult> ValidaInformacoes()
+        {
+            // Usamos FirstOrDefaultAsync para pegar o objeto real (precisamos do ID para o Details)
+            var empresa = await _context.UsuarioEmpresa.FirstOrDefaultAsync();
+
+            if (empresa == null)
+            {
+                // Se não tem registro, redireciona para a rota /UsuarioEmpresa/Create
+                return RedirectToAction(nameof(Create));
+            }
+            else
+            {
+                // Se tem registro, redireciona para a rota /UsuarioEmpresa/Details/5
+                return RedirectToAction(nameof(Details), new { id = empresa.Id });
+            }
+        }
 
         // GET: UsuarioEmpresa/Create
         public IActionResult Create()
         {
-            ViewData["ChaveAcessoId"] = new SelectList(_context.ChaveAcesso, "Id", "UUID");
             return View();
         }
 
@@ -57,13 +71,19 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NomeRazao,NomeFantasia,CNPJ,InscricaoEstadual,Email,Senha,Contato,DataEntrada,ChaveAcessoId")] UsuarioEmpresa usuarioEmpresa)
+        public async Task<IActionResult> Create([Bind("NomeRazao,NomeFantasia,CNPJ,InscricaoEstadual,Email,Contato")] UsuarioEmpresa usuarioEmpresa)
         {
             if (ModelState.IsValid)
             {
+                usuarioEmpresa.CNPJ = usuarioEmpresa.CNPJ.Replace(".", "").Replace(".", "").Replace("/", "").Replace("-", "");
+
+                // correção paliativa no momento até alterar o BD
+                usuarioEmpresa.Senha = "";
+                usuarioEmpresa.ChaveAcessoId = 1;
                 _context.Add(usuarioEmpresa);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                return RedirectToAction(nameof(Details), new { id = usuarioEmpresa.Id });
             }
             ViewData["ChaveAcessoId"] = new SelectList(_context.ChaveAcesso, "Id", "UUID", usuarioEmpresa.ChaveAcessoId);
             return View(usuarioEmpresa);
