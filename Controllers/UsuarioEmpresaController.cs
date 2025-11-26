@@ -73,13 +73,22 @@ namespace PDV.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("NomeRazao,NomeFantasia,CNPJ,InscricaoEstadual,Email,Contato")] UsuarioEmpresa usuarioEmpresa)
         {
+            ChaveAcesso chave = new ChaveAcesso
+            {
+                UUID = "123456",
+                DataInicio = DateTime.Now,
+                DataFim = DateTime.Now.AddYears(1)
+            };
+            _context.Add(chave);
+            await _context.SaveChangesAsync();
+
             if (ModelState.IsValid)
             {
                 usuarioEmpresa.CNPJ = usuarioEmpresa.CNPJ.Replace(".", "").Replace(".", "").Replace("/", "").Replace("-", "");
 
                 // correção paliativa no momento até alterar o BD
                 usuarioEmpresa.Senha = "";
-                usuarioEmpresa.ChaveAcessoId = 1;
+                usuarioEmpresa.ChaveAcessoId = chave.Id;
                 _context.Add(usuarioEmpresa);
                 await _context.SaveChangesAsync();
 
