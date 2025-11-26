@@ -146,6 +146,7 @@ namespace PDV.Controllers
         {
             if (_context.ProdutoPromocao == null)
             {
+                TempData["Erro"] = "Produto não encontrado!";
                 return Problem("Entity set 'PDVContext.ProdutoPromocao'  is null.");
             }
             var produtoPromocao = await _context.ProdutoPromocao.FindAsync(id);
@@ -154,6 +155,7 @@ namespace PDV.Controllers
                 _context.ProdutoPromocao.Remove(produtoPromocao);
             }
 
+            TempData["Sucesso"] = "Produto excluído com sucesso!";
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -179,8 +181,6 @@ namespace PDV.Controllers
                 DataFim = item.DataFim,
                 DataEntrada = DateTime.Now
             }).ToList();
-
-
 
             _context.ProdutoPromocao.AddRange(promocoesParaSalvar);
             await _context.SaveChangesAsync();

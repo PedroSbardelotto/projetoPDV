@@ -57,6 +57,7 @@
             padding: 1rem 0;
             overflow-y: auto;
             overflow-x: hidden;
+            font-size: 0.8rem;
             flex: 1;
         }
 
@@ -171,6 +172,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="ProdutoPromocao" asp-action="Index">
+                        <i class="bi bi-receipt me-2"></i>Promoções
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" asp-controller="Clientes" asp-action="Index">
                         <i class="bi bi-people-fill me-2"></i>Clientes
                     </a>
@@ -181,13 +187,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" asp-area="" asp-controller="TipoPagamentoes" asp-action="Index">
+                    <a class="nav-link" asp-area="" asp-controller="TipoPagamentoes" asp-action="Index">
                         <i class="bi bi-wallet-fill me-2"></i>Tipos de Pagamento
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-area="" asp-controller="ProdutoPromocao" asp-action="Index">
-                        <i class="bi bi-receipt me-2"></i>Promoções
                     </a>
                 </li>
             </ul>

@@ -18,28 +18,24 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                         <input type="hidden" asp-for="Id" />
-                        <input type="hidden" asp-for="DataEntrada" />
-                        <input type="hidden" asp-for="DataFim" />
-                        <input type="hidden" asp-for="Preco" />
+                        @* <input type="hidden" asp-for="Preco" /> *@
                         <input type="hidden" asp-for="ProdutoId" />
                         <input type="hidden" asp-for="Produto" />
-                        
-
 
                         <div class="row mb-4">
                             <div class="col-md-3">
                                 <label asp-for="Produto.Id" class="form-label fw-bold small text-uppercase text-muted">Código</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
-                                    <input asp-for="Produto.Id" class="form-control bg-light border-start-0 ps-0" disabled />
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-code"></i></span>
+                                    <input asp-for="Produto.Id" class="form-control ps-2 border-start-0 ps-0" disabled />
                                 </div>
                                 <span asp-validation-for="Produto.Id" class="text-danger small mt-1"></span>
                             </div>
                             <div class="col-md-9">
                                 <label asp-for="Produto.Nome" class="form-label fw-bold small text-uppercase text-muted">Produto</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
-                                    <input asp-for="Produto.Nome" class="form-control bg-light border-start-0 ps-0" disabled />
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-pencil-square"></i></span>
+                                    <input asp-for="Produto.Nome" class="form-control ps-2 border-start-0 ps-0" disabled />
                                 </div>
                                 <span asp-validation-for="Produto.Nome" class="text-danger small mt-1"></span>
                             </div>
@@ -50,7 +46,7 @@
                                 <label asp-for="Produto.Custo" class="form-label fw-bold small text-uppercase text-muted">Custo</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
-                                    <input asp-for="Produto.Custo" id="contato-mask" class="form-control bg-light border-start-0 ps-0" disabled />
+                                    <input asp-for="Produto.Custo" id="contato-mask" class="form-control ps-2 border-start-0 ps-0" disabled />
                                 </div>
                                 <span asp-validation-for="Produto.Custo" class="text-danger small mt-1"></span>
                             </div>
@@ -58,7 +54,7 @@
                                 <label asp-for="Produto.Preco" class="form-label fw-bold small text-uppercase text-muted">Preco</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
-                                    <input asp-for="Produto.Preco" id="cpf-mask" class="form-control bg-light border-start-0 ps-0" disabled />
+                                    <input asp-for="Produto.Preco" id="cpf-mask" class="form-control ps-2 border-start-0 ps-0" disabled />
                                 </div>
                                 <span asp-validation-for="Produto.Preco" class="text-danger small mt-1"></span>
                             </div>
