@@ -1,44 +1,126 @@
 ﻿@model PDV.Models.ProdutoPromocao
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Promoção";
 }
 
-<h1>Edit</h1>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
 
-<h4>ProdutoPromocao</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Preco" class="control-label"></label>
-                <input asp-for="Preco" class="form-control" />
-                <span asp-validation-for="Preco" class="text-danger"></span>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                    <h4 class="fw-bold text-dark mb-1">Editar Promoção</h4>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Edit">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="DataEntrada" />
+                        <input type="hidden" asp-for="DataFim" />
+                        <input type="hidden" asp-for="Preco" />
+                        <input type="hidden" asp-for="ProdutoId" />
+                        <input type="hidden" asp-for="Produto" />
+                        
+
+
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <label asp-for="Produto.Id" class="form-label fw-bold small text-uppercase text-muted">Código</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
+                                    <input asp-for="Produto.Id" class="form-control bg-light border-start-0 ps-0" disabled />
+                                </div>
+                                <span asp-validation-for="Produto.Id" class="text-danger small mt-1"></span>
+                            </div>
+                            <div class="col-md-9">
+                                <label asp-for="Produto.Nome" class="form-label fw-bold small text-uppercase text-muted">Produto</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
+                                    <input asp-for="Produto.Nome" class="form-control bg-light border-start-0 ps-0" disabled />
+                                </div>
+                                <span asp-validation-for="Produto.Nome" class="text-danger small mt-1"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Produto.Custo" class="form-label fw-bold small text-uppercase text-muted">Custo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
+                                    <input asp-for="Produto.Custo" id="contato-mask" class="form-control bg-light border-start-0 ps-0" disabled />
+                                </div>
+                                <span asp-validation-for="Produto.Custo" class="text-danger small mt-1"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Produto.Preco" class="form-label fw-bold small text-uppercase text-muted">Preco</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
+                                    <input asp-for="Produto.Preco" id="cpf-mask" class="form-control bg-light border-start-0 ps-0" disabled />
+                                </div>
+                                <span asp-validation-for="Produto.Preco" class="text-danger small mt-1"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Preco" class="form-label fw-bold small text-uppercase text-muted">Preco Promocional</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-currency-dollar"></i></span>
+                                <input asp-for="Preco" class="form-control bg-light border-start-0 ps-0" placeholder="0,00" />
+                            </div>
+                            <span asp-validation-for="Preco" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="DataInicio" class="form-label fw-bold small text-uppercase text-muted">Data Inicio</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar2-minus-fill"></i></span>
+                                    <input asp-for="DataInicio" id="contato-mask" class="form-control bg-light border-start-0 ps-0" />
+                                </div>
+                                <span asp-validation-for="DataInicio" class="text-danger small mt-1"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DataFim" class="form-label fw-bold small text-uppercase text-muted">Data Fim</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar2-minus-fill"></i></span>
+                                    <input asp-for="DataFim" id="cpf-mask" class="form-control bg-light border-start-0 ps-0" />
+                                </div>
+                                <span asp-validation-for="DataFim" class="text-danger small mt-1"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="DataEntrada" class="form-label fw-bold small text-uppercase text-muted">Inserido Em</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar2-minus-fill"></i></span>
+                                <input asp-for="DataEntrada" class="form-control bg-light border-start-0 ps-0" disabled />
+                            </div>
+                            <span asp-validation-for="DataEntrada" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <hr class="my-4 dashed-border opacity-50">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-light text-secondary fw-bold border-0 px-3">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm rounded-3">
+                                <i class="bi bi-check-lg me-2"></i>Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="DataInicio" class="control-label"></label>
-                <input asp-for="DataInicio" class="form-control" />
-                <span asp-validation-for="DataInicio" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataFim" class="control-label"></label>
-                <input asp-for="DataFim" class="form-control" />
-                <span asp-validation-for="DataFim" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+
+    }
+
 }

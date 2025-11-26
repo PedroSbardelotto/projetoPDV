@@ -26,7 +26,33 @@ namespace PDV.Controllers
         {
             HomeViewModel homeViewModel = new HomeViewModel();
             homeViewModel.Categorias = _context.Categoria.ToList();
-            homeViewModel.Produtos = _context.Produto.Where(p=> p.Status == true).ToList();
+            var today = DateTime.Now;
+
+            var produtosAtivosQuery = _context.Produto.Where(p => p.Status == true);
+            homeViewModel.Produtos = produtosAtivosQuery
+                .Select(p => new
+                {
+                    Produto = p,
+
+                    PromocaoAtiva = _context.ProdutoPromocao
+                        .Where(pp =>
+                            pp.ProdutoId == p.Id &&
+                            pp.DataInicio <= today &&
+                            pp.DataFim >= today)
+                        .OrderBy(pp => pp.Preco)
+                        .FirstOrDefault()
+                })
+                .Select(pvm => new Produto
+                {
+                    Id = pvm.Produto.Id,
+                    Nome = pvm.Produto.Nome,
+                    Preco = pvm.PromocaoAtiva != null ? pvm.PromocaoAtiva.Preco : pvm.Produto.Preco,
+                    Custo = pvm.Produto.Custo
+                })
+                .OrderBy(p => p.Nome)
+                .ToList();
+
+            //homeViewModel.Produtos = _context.Produto.Where(p=> p.Status == true).ToList();
             homeViewModel.Clientes = _context.Cliente.ToList();
             homeViewModel.Fechamento = _context.Fechamento.Where(f => f.DataFechamento == null).SingleOrDefault();
             ViewBag.TipoPagamentos = _context.TipoPagamento.ToList();

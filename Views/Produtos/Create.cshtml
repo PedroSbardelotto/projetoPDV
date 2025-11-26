@@ -53,7 +53,7 @@
 
                             <div class="row g-3">
                                 <!-- Linha 1: Financeiro -->
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label asp-for="Custo" class="form-label fw-bold small text-muted">Preço de Custo</label>
                                     <div class="input-group shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-secondary">R$</span>
@@ -62,7 +62,15 @@
                                     <span asp-validation-for="Custo" class="text-danger small"></span>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-3">
+                                    <label for="Markup" class="form-label fw-bold small text-muted">Margem</label>
+                                    <div class="input-group shadow-sm">
+                                        <input id="Markup" class="form-control border-0 fw-lighter text-primary" placeholder="0,00" readonly />
+                                        <span class="input-group-text bg-white border-0 text-primary fw-bold">%</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
                                     <label asp-for="Preco" class="form-label fw-bold small text-muted">Preço de Venda</label>
                                     <div class="input-group shadow-sm">
                                         <span class="input-group-text bg-white border-0 text-success fw-bold">R$</span>
@@ -127,6 +135,41 @@
         $(document).ready(function(){
             $('#Preco').mask('000.000.000.000.000,00', {reverse: true});
             $('#Custo').mask('000.000.000.000.000,00', {reverse: true});
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Função para formatar e converter strings para um número decimal que JS entenda (usando vírgula como separador)
+            function parseCurrency(value) {
+                if (!value) return 0;
+                // Substitui o ponto (separador de milhar) por nada e a vírgula (separador decimal) por ponto
+                return parseFloat(value.replace(/\./g, '').replace(',', '.'));
+            }
+
+            // Função principal de cálculo
+            function calculateMarkup() {
+                var custo = parseCurrency($('#Custo').val());
+                var preco = parseCurrency($('#Preco').val());
+
+                var markup = 0;
+
+                // Checa para evitar a divisão por zero (item.Custo != 0)
+                if (custo > 0) {
+                    // Fórmula: ((Preço - Custo) / Custo) * 100
+                    markup = ((preco - custo) / custo) * 100;
+                }
+
+                // Atualiza o campo Markup formatando o número para 2 casas decimais e usando a vírgula
+                $('#Markup').val(markup.toFixed(2).replace('.', ','));
+            }
+
+            // Atacha a função de cálculo aos eventos de mudança de valor dos campos
+            $('#Custo').on('input change', calculateMarkup);
+            $('#Preco').on('input change', calculateMarkup);
+
+            // Garante que o cálculo é executado na carga da página, caso os campos já tenham valores
+            calculateMarkup();
         });
     </script>
 }

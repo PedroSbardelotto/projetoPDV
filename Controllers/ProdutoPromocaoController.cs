@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PDV.Data;
 using PDV.Models;
+using PDV.Models.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PDV.Controllers
 {
@@ -22,9 +23,10 @@ namespace PDV.Controllers
         // GET: ProdutoPromocao
         public async Task<IActionResult> Index()
         {
-              return _context.ProdutoPromocao != null ? 
-                          View(await _context.ProdutoPromocao.ToListAsync()) :
-                          Problem("Entity set 'PDVContext.ProdutoPromocao'  is null.");
+            return _context.ProdutoPromocao != null ?
+                        View(await _context.ProdutoPromocao
+                        .Include(p => p.Produto).OrderBy(p => p.Produto.Nome).ToListAsync()) :
+                        Problem("Entity set 'PDVContext.ProdutoPromocao'  is null.");
         }
 
         // GET: ProdutoPromocao/Details/5
@@ -44,6 +46,7 @@ namespace PDV.Controllers
 
             return View(produtoPromocao);
         }
+
 
         // GET: ProdutoPromocao/Create
         public IActionResult Create()
@@ -75,7 +78,7 @@ namespace PDV.Controllers
                 return NotFound();
             }
 
-            var produtoPromocao = await _context.ProdutoPromocao.FindAsync(id);
+            var produtoPromocao = await _context.ProdutoPromocao.Include(p => p.Produto).FirstOrDefaultAsync(m => m.Id == id);
             if (produtoPromocao == null)
             {
                 return NotFound();
@@ -88,34 +91,34 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Preco,DataInicio,DataFim")] ProdutoPromocao produtoPromocao)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Preco,DataInicio,DataFim, Produto, ProdutoId")] ProdutoPromocao produtoPromocao)
         {
             if (id != produtoPromocao.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            var produto = await _context.Produto.FindAsync(produtoPromocao.ProdutoId);
+
+            produtoPromocao.Produto = produto;
+
+            try
             {
-                try
-                {
-                    _context.Update(produtoPromocao);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProdutoPromocaoExists(produtoPromocao.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                _context.Update(produtoPromocao);
+                await _context.SaveChangesAsync();
             }
-            return View(produtoPromocao);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProdutoPromocaoExists(produtoPromocao.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: ProdutoPromocao/Delete/5
@@ -150,14 +153,61 @@ namespace PDV.Controllers
             {
                 _context.ProdutoPromocao.Remove(produtoPromocao);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProdutoPromocaoExists(int id)
         {
-          return (_context.ProdutoPromocao?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.ProdutoPromocao?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        public async Task<IActionResult> SalvarPromocao([FromBody] PromocaoSalvarViewModel model)
+        {
+            if (model.Produtos == null || !model.Produtos.Any())
+            {
+                TempData["Erro"] = "Nenhum produto Selecionado!";
+            }
+
+            // Lógica para salvar cada item da lista no banco
+            var promocoesParaSalvar = model.Produtos.Select(item => new ProdutoPromocao
+            {
+                ProdutoId = item.ProdutoId,
+                Preco = item.Preco,
+                DataInicio = item.DataInicio,
+                DataFim = item.DataFim,
+                DataEntrada = DateTime.Now
+            }).ToList();
+
+
+
+            _context.ProdutoPromocao.AddRange(promocoesParaSalvar);
+            await _context.SaveChangesAsync();
+
+            TempData["Sucesso"] = "Promoções adicionadas!";
+            return Json(new { sucesso = true, mensagem = "" });
+
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> BuscarProdutos(string termo)
+        {
+            // Use ToLower() para busca case-insensitive no servidor (melhor performance no banco)
+            var produtos = await _context.Produto
+                .Where(p => string.IsNullOrEmpty(termo) || p.Nome.Contains(termo) || p.Id.ToString() == termo)
+                .Select(p => new
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Custo = p.Custo,
+                    // Adicione outras propriedades necessárias
+                })
+                .Take(50) // Limita o número de resultados para performance
+                .ToListAsync();
+
+            return Json(produtos);
         }
     }
 }

@@ -36,6 +36,8 @@
                         <tr>
                             <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Item</th>
                             <th class="py-3 text-uppercase text-muted small fw-bold border-0">Categoria</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Custo</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">%</th>
                             <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-end">Preço</th>
                             <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Estoque</th>
                             <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Status</th>
@@ -61,6 +63,22 @@
                                     <span class="badge bg-info bg-opacity-10 text-info border border-info rounded-pill fw-normal px-3">
                                         @item.Categoria?.Nome
                                     </span>
+                                </td>
+                                <td class="font-monospace fw-bold text-primary text-center">
+                                    @item.Custo.ToString("C", culture)
+                                </td>
+                                <td class="font-monospace text-center border-0 fw-lighter text-secondary">
+                                    @{
+                                        if(item.Custo != 0)
+                                        {
+                                            var lucroSobreCusto = ((item.Preco - item.Custo) / item.Custo) * 100;
+                                            @(lucroSobreCusto.ToString("N2", culture) + "%")
+                                        }
+                                        else
+                                        {
+                                            @("-")
+                                        }
+                                    }
                                 </td>
                                 <td class="text-end font-monospace fw-bold text-primary">
                                     @item.Preco.ToString("C", culture)

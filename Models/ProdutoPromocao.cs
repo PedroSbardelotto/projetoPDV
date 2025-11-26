@@ -12,5 +12,7 @@ namespace PDV.Models
         public DateTime DataInicio { get; set; }
         public DateTime DataFim { get; set; }
         public DateTime DataEntrada { get; set; } = DateTime.Now;
+        public int ProdutoId { get; set; }
+        public Produto Produto { get; set; }
     }
 }
