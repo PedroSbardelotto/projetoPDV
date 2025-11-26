@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using PDV.Data;
 using PDV.Enums;
 using PDV.Models;
+using PDV.Models.Helper;
 using PDV.Models.ViewModels;
 
 namespace PDV.Controllers
@@ -23,11 +24,11 @@ namespace PDV.Controllers
         }
 
         // GET: Fechamentoes
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? pageNumber)
         {
-              return _context.Fechamento != null ? 
-                          View(await _context.Fechamento.ToListAsync()) :
-                          Problem("Entity set 'PDVContext.Fechamento'  is null.");
+            var fechamentos = _context.Fechamento.AsNoTracking().OrderByDescending(f=> f.DataAbertura);
+            int pageSize = 10;
+            return View(await PaginatedList<Fechamento>.CreateAsync(fechamentos.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: Fechamentoes/Details/5

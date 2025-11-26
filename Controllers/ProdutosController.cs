@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PDV.Data;
 using PDV.Models;
+using PDV.Models.Helper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PDV.Controllers
 {
@@ -19,11 +20,18 @@ namespace PDV.Controllers
             _context = context;
         }
 
-        // GET: Produtos
-        public async Task<IActionResult> Index()
+        //// GET: Produtos
+        public async Task<IActionResult> Index(int? pageNumber)
         {
-            var pDVContext = _context.Produto.Include(p => p.Categoria);
-            return View(await pDVContext.ToListAsync());
+            var pdvContext = _context.Produto.Include(p => p.Categoria).AsQueryable();
+
+            // Ordenação é importante para paginação não "pular" itens
+            pdvContext = pdvContext.OrderBy(p => p.Nome);
+
+            int pageSize = 10; // Quantidade por página
+
+            // Retorna a lista paginada
+            return View(await PaginatedList<Produto>.CreateAsync(pdvContext.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: Produtos/Details/5
