@@ -181,7 +181,7 @@
             </a>
 
             <!-- CORREÇÃO AQUI: Adicionado 'flex-column' para empilhar os botões corretamente -->
-            <ul class="nav flex-column sidebar-menu">
+            <ul class="nav flex sidebar-menu flex-wrap">
 
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="Home" asp-action="Index">
@@ -227,11 +227,6 @@
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="TipoPagamentoes" asp-action="Index">
                         <i class="bi bi-wallet-fill"></i> Formas Pagto
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="ProdutoPromocao" asp-action="Index">
-                        <i class="bi bi-receipt me-2"></i>Promoções
                     </a>
                 </li>
             </ul>
