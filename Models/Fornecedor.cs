@@ -10,7 +10,7 @@ namespace PDV.Models
         [Required]
         public string NomeFantasia { get; set; }
         [Required]
-        [MaxLength(14)]
+        [MaxLength(18)]
         public string CNPJ { get; set; }
         [Required]
         public string InscricaoEstadual { get; set; }

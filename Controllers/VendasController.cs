@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PDV.Data;
 using PDV.Enums;
 using PDV.Models;
+using PDV.Models.Helper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PDV.Controllers
 {
@@ -21,10 +22,13 @@ namespace PDV.Controllers
         }
 
         // GET: Vendas
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? pageNumber)
         {
             var pDVContext = _context.Vendas.Include(v => v.Cliente).Include(v => v.Fechamento).Include(v => v.TipoPagamento).Include(v => v.UsuarioEmpresa).OrderByDescending(v=>v.DataEntrada);
-            return View(await pDVContext.ToListAsync());
+            pDVContext = pDVContext.OrderByDescending(p => p.DataEntrada);
+            int pageSize = 10;
+            
+            return View(await PaginatedList<Vendas>.CreateAsync(pDVContext.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: Vendas/Details/5

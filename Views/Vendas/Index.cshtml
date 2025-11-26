@@ -1,9 +1,13 @@
-﻿@model IEnumerable<PDV.Models.Vendas>
+﻿@model PDV.Models.Helper.PaginatedList<PDV.Models.Vendas>
 @using System.Globalization
 
 @{
     ViewData["Title"] = "Histórico de Vendas";
     var culture = new CultureInfo("pt-BR");
+
+    // Controle dos botões de paginação
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
 }
 
 <div class="container-fluid py-4">
@@ -11,14 +15,14 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-0">Vendas</h2>
-            <p class="text-muted small mb-0">Histórico de transações</p>
+            <p class="text-muted small mb-0">Histórico de transações e movimento</p>
         </div>
-        <a asp-action="Index" asp-controller="Home" class="btn btn-primary px-4 fw-bold shadow-sm rounded-3">
+        <a asp-action="Index" asp-controller="Home" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3">
             <i class="bi bi-cart-plus-fill me-2"></i>Nova Venda
         </a>
     </div>
 
-    <!-- Card -->
+    <!-- Card da Tabela -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -34,64 +38,96 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.OrderByDescending(x => x.DataEntrada))
+                        @foreach (var item in Model)
                         {
+                            // Lógica Visual
+                            var isConcluido = item.Status == 1;
+
                             <tr class="border-bottom border-light">
+                                <!-- Data -->
                                 <td class="ps-4 py-3">
                                     <div class="d-flex flex-column">
                                         <span class="fw-bold text-dark">@item.DataEntrada.ToString("dd/MM/yyyy")</span>
                                         <span class="small text-muted">@item.DataEntrada.ToString("HH:mm")</span>
                                     </div>
                                 </td>
+
+                                <!-- Cliente -->
                                 <td>
-                                    @if (item.Cliente != null)
-                                    {
-                                        <div class="d-flex align-items-center">
-                                            <div class="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
-                                                @item.Cliente.Nome.Substring(0, 1).ToUpper()
-                                            </div>
-                                            <span class="fw-semibold text-dark">@item.Cliente.Nome</span>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center me-3 border"
+                                             style="width: 35px; height: 35px;">
+                                            @if (item.Cliente != null)
+                                            {
+                                                <span class="fw-bold small">@item.Cliente.Nome.Substring(0, 1).ToUpper()</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-person"></i>
+                                            }
                                         </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted fst-italic small">Consumidor Final</span>
-                                    }
+                                        <div>
+                                            @if (item.Cliente != null)
+                                            {
+                                                <span class="fw-semibold text-dark d-block">@item.Cliente.Nome</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic small">Consumidor Final</span>
+                                            }
+                                        </div>
+                                    </div>
                                 </td>
+
+                                <!-- Pagamento -->
                                 <td>
-                                    <span class="badge bg-light text-dark border fw-normal">
+                                    <span class="badge bg-light text-secondary border fw-normal px-3">
                                         @(item.TipoPagamento?.Descricao ?? "N/A")
                                     </span>
                                 </td>
+
+                                <!-- Valor -->
                                 <td class="text-end">
-                                    <span class="fw-bold text-success">@item.ValorTotal.ToString("C", culture)</span>
+                                    <span class="font-monospace fw-bold text-dark">
+                                        @item.ValorTotal.ToString("C", culture)
+                                    </span>
                                 </td>
+
+                                <!-- Status -->
                                 <td class="text-center">
-                                    @if (item.Status == 1)
+                                    @if (isConcluido)
                                     {
-                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Concluída</span>
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Concluída
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Pendente</span>
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">
+                                            <i class="bi bi-clock-history me-1"></i> Pendente
+                                        </span>
                                     }
                                 </td>
+
+                                <!-- Ações -->
                                 <td class="pe-4 text-end">
-                                    <div class="btn-group">
-                                        @if (item.Status != 1)
+                                    <div class="btn-group shadow-sm rounded-3">
+                                        @if (!isConcluido)
                                         {
-                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary" title="Editar">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white border text-primary" title="Editar">
                                                 <i class="bi bi-pencil-fill"></i>
                                             </a>
                                         }
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light text-info" title="Recibo/Detalhes">
+
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-white border text-info" title="Ver Recibo">
                                             <i class="bi bi-receipt"></i>
                                         </a>
 
-                                        @if (item.Status == 1)
+                                        @if (isConcluido)
                                         {
-                                            <button type="button" class="btn btn-sm btn-light text-danger"
-                                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            <button type="button" class="btn btn-sm btn-white border text-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal"
                                                     data-bs-id="@item.Id"
                                                     data-bs-name="Venda #@item.Id"
                                                     data-nome-base="venda"
@@ -107,15 +143,47 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Estado Vazio -->
             @if (!Model.Any())
             {
                 <div class="text-center py-5">
-                    <i class="bi bi-cart-x text-muted opacity-25" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-3">Nenhuma venda registrada.</p>
+                    <div class="mb-3">
+                        <div class="bg-light rounded-circle p-4 d-inline-flex">
+                            <i class="bi bi-cart-x text-muted fs-1 opacity-50"></i>
+                        </div>
+                    </div>
+                    <h5 class="text-muted fw-bold">Nenhuma venda registrada</h5>
+                    <p class="text-muted small mb-0">As vendas realizadas aparecerão aqui.</p>
                 </div>
             }
         </div>
+
+        <!-- Rodapé com Paginação -->
+        @if (Model.Any())
+        {
+            <div class="card-footer bg-white py-3 border-top-0 d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    Página <strong>@Model.PageIndex</strong> de <strong>@Model.TotalPages</strong>
+                </div>
+
+                <div>
+                    <a asp-action="Index"
+                       asp-route-pageNumber="@(Model.PageIndex - 1)"
+                       class="btn btn-sm btn-light border @prevDisabled">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                    <a asp-action="Index"
+                       asp-route-pageNumber="@(Model.PageIndex + 1)"
+                       class="btn btn-sm btn-light border ms-1 @nextDisabled">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
+<!-- Modais Necessários -->
 <partial name="_DeleteModal" />
+<partial name="_ActivateModal" />

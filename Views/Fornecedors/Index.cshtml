@@ -1,83 +1,178 @@
 ﻿@model IEnumerable<PDV.Models.Fornecedor>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Fornecedores";
 }
 
-<h1>Index</h1>
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Fornecedores</h2>
+            <p class="text-muted small mb-0">Gerencie seus parceiros e compras</p>
+        </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.NomeRazao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NomeFantasia)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CNPJ)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.InscricaoEstadual)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Endereco)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Contato)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataEntrada)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataAtualizacao)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.NomeRazao)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NomeFantasia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CNPJ)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.InscricaoEstadual)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Endereco)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Contato)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataEntrada)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataAtualizacao)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+        <a asp-action="Create" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3">
+            <i class="bi bi-plus-lg me-2"></i>Novo Fornecedor
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form asp-action="Index" method="get">
+                <div class="d-flex gap-2 align-items-center bg-white p-2 rounded-4 shadow-sm border">
+                    <div class="input-group input-group-flush">
+                        <span class="input-group-text bg-transparent border-0 ps-3">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" name="searchString" class="form-control border-0 bg-transparent"
+                               placeholder="Busque por nome, CNPJ ou email..." value="@ViewData["CurrentFilter"]">
+                    </div>
+
+                    <div class="d-flex gap-2 pe-2">
+                        <button type="submit" class="btn btn-sm btn-light text-primary fw-bold px-3 rounded-pill">
+                            Filtrar
+                        </button>
+                        @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"] as string))
+                        {
+                            <a asp-action="Index" class="btn btn-sm btn-light text-secondary px-3 rounded-pill" title="Limpar Filtros">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Fornecedor</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0">Contato</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0">Documento</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0">Status</th>
+                            <th class="pe-4 py-3 text-end text-uppercase text-muted small fw-bold border-0">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                var initial = item.NomeFantasia?.Substring(0, 1).ToUpper() ?? "?";
+                                var statusClass = item.Status == true ? "bg-success text-success" : "bg-secondary text-secondary";
+                                var statusIcon = item.Status == true ? "bi-check-circle-fill" : "bi-dash-circle-fill";
+                                var statusText = item.Status == true ? "Ativo" : "Inativo";
+
+                                <tr class="border-bottom border-light">
+                                    <td class="ps-4 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold me-3"
+                                                 style="width: 40px; height: 40px; font-size: 1.1rem;">
+                                                @initial
+                                            </div>
+                                            <div>
+                                                <span class="fw-bold text-dark d-block">@Html.DisplayFor(modelItem => item.NomeFantasia)</span>
+                                                <span class="small text-muted">@Html.DisplayFor(modelItem => item.NomeRazao)</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            @if (!string.IsNullOrEmpty(item.Email))
+                                            {
+                                                <span class="small text-muted"><i class="bi bi-envelope me-1"></i> @item.Email</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Contato))
+                                            {
+                                                <span class="small text-dark cel-mask"><i class="bi bi-telephone me-1"></i> @item.Contato</span>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-light text-secondary border cnpj-mask fw-normal text-dark">
+                                            @item.CNPJ
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-inline-flex align-items-center px-3 py-1 rounded-pill border @statusClass bg-opacity-10 border-opacity-10">
+                                            <i class="bi @statusIcon me-2"></i>
+                                            <span class="fw-bold small">@statusText</span>
+                                        </div>
+                                    </td>
+
+                                    <td class="pe-4 text-end">
+                                        <div class="btn-group">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary" title="Editar">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light text-info" title="Detalhes">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </a>
+                                            @if (item.Status == true)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-light text-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deleteModal"
+                                                        data-bs-id="@item.Id"
+                                                        data-bs-name="@item.NomeFantasia"
+                                                        data-nome-base="fornecedor"
+                                                        data-bs-url="@Url.Action("DeleteOrActivate", "Fornecedors")"
+                                                        title="Excluir">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-light text-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deleteModal"
+                                                        data-bs-id="@item.Id"
+                                                        data-bs-name="@item.NomeFantasia"
+                                                        data-nome-base="fornecedor"
+                                                        data-bs-url="@Url.Action("DeleteOrActivate", "Fornecedors")"
+                                                        title="Excluir">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-box-seam text-muted opacity-25" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-3">Nenhum fornecedor encontrado.</p>
+                                    @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"] as string))
+                                    {
+                                        <a asp-action="Index" class="btn btn-link text-decoration-none">Limpar filtros</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            // Máscara específica para CNPJ e Celular
+            $('.cnpj-mask').mask('00.000.000/0000-00', {reverse: true});
+            $('.cel-mask').mask('(00) 00000-0000');
+        });
+    </script>
 }
-    </tbody>
-</table>

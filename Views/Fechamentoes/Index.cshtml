@@ -1,9 +1,13 @@
-﻿@model IEnumerable<PDV.Models.Fechamento>
+﻿@model PDV.Models.Helper.PaginatedList<PDV.Models.Fechamento>
 @using System.Globalization
 
 @{
     ViewData["Title"] = "Histórico de Caixa";
     var culture = new CultureInfo("pt-BR");
+
+    // Controle dos botões de paginação
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
 }
 
 <div class="container-fluid py-4">
@@ -34,7 +38,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.OrderByDescending(x => x.DataAbertura))
+                        @foreach (var item in Model)
                         {
                             // Lógica Visual
                             bool isAberto = !item.DataFechamento.HasValue;
@@ -94,6 +98,7 @@
                     </tbody>
                 </table>
             </div>
+
             @if (!Model.Any())
             {
                 <div class="text-center py-5">
@@ -102,5 +107,28 @@
                 </div>
             }
         </div>
+
+        <!-- Rodapé com Paginação -->
+        @if (Model.Any())
+        {
+            <div class="card-footer bg-white py-3 border-top-0 d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    Página <strong>@Model.PageIndex</strong> de <strong>@Model.TotalPages</strong>
+                </div>
+
+                <div>
+                    <a asp-action="Index"
+                       asp-route-pageNumber="@(Model.PageIndex - 1)"
+                       class="btn btn-sm btn-light border @prevDisabled">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                    <a asp-action="Index"
+                       asp-route-pageNumber="@(Model.PageIndex + 1)"
+                       class="btn btn-sm btn-light border ms-1 @nextDisabled">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        }
     </div>
 </div>

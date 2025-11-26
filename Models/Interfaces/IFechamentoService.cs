@@ -2,7 +2,7 @@
 {
     public interface IFechamentoService
     {
-        void AbrirNovoCaixa(decimal valorInicial);
-        void FecharCaixa(decimal ValorFechamento);
+        bool AbrirNovoCaixa(decimal valorInicial);
+        bool FecharCaixa(decimal ValorFechamento);
     }
 }
