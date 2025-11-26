@@ -169,5 +169,25 @@ namespace PDV.Controllers
         {
             return (_context.Produto?.Any(e => e.Id == id)).GetValueOrDefault();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> BuscarProdutos(string termo)
+        {
+            // Use ToLower() para busca case-insensitive no servidor (melhor performance no banco)
+            var produtos = await _context.Produto
+                .Where(p => string.IsNullOrEmpty(termo) || p.Nome.Contains(termo) || p.Id.ToString() == termo)
+                .Select(p => new
+                {
+                    Id = p.Id,
+                    Nome = p.Nome,
+                    Preco = p.Preco,
+                    Custo = p.Custo,
+                    // Adicione outras propriedades necessárias
+                })
+                .Take(50) // Limita o número de resultados para performance
+                .ToListAsync();
+
+            return Json(produtos);
+        }
     }
 }

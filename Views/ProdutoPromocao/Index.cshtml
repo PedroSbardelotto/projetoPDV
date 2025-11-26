@@ -1,47 +1,535 @@
 ﻿@model IEnumerable<PDV.Models.ProdutoPromocao>
+@using System.Globalization
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Promoções";
+    var culture = new CultureInfo("pt-BR");
 }
 
-<h1>Index</h1>
+<style>
+    .promocao {
+        background-color: #bcbcbc;
+    }
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Preco)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataInicio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DataFim)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Preco)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataInicio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DataFim)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+    .promocao-inicio {
+        background-color: #e8e86a;
+    }
+
+    .bg-colors-estimado {
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        background-color: #e8e86a;
+    }
+
+    .bg-colors-inicio {
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        background-color: #bcbcbc;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Promoções</h2>
+            <p class="text-muted small mb-0">Produtos em promoção</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a id="btn-abrir-modal" class="btn btn-primary px-4 fw-bold shadow-sm rounded-3">
+                <i class="bi bi-plus-lg me-2"></i>Nova Promoção
+            </a>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center">
+        <div class="d-flex m-2">
+            <div class="bg-colors-estimado m-1">&nbsp;</div>
+            <span>
+                Início
+            </span>
+        </div>
+        <div class="d-flex m-2">
+            <div class="bg-colors-inicio m-1">&nbsp;</div>
+            <span>
+                Vencidas
+            </span>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase text-muted small fw-bold border-0">Código</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0">Nome</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Custo</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">%</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Preço Promoção</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Preço</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Data Inicio</th>
+                            <th class="py-3 text-uppercase text-muted small fw-bold border-0 text-center">Data Fim</th>
+                            <th class="pe-4 py-3 text-uppercase text-muted small fw-bold border-0 text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            string strColor = "";
+
+                            if (DateTime.Now > item.DataFim)
+                            {
+                                strColor = "promocao";
+                            }
+
+                            if (item.DataInicio > DateTime.Now)
+                            {
+                                strColor = "promocao-inicio";
+                            }
+
+                            <tr class="@(strColor) border-bottom border-light">
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-3 bg-light text-secondary d-flex align-items-center justify-content-center me-3 border"
+                                             style="width: 40px; height: 40px;">
+                                            <i class="bi bi-box-seam fs-5"></i>
+                                        </div>
+                                        <span class="fw-semibold text-dark">@item.ProdutoId</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-dark">@(item.Produto?.Nome ?? "Produto ID: " + item.ProdutoId)</span>
+                                </td>
+                                <td class="font-monospace fw-bold text-primary text-center">
+                                    @(item.Produto != null ? item.Produto.Custo.ToString("C", culture) : "-")
+                                </td>
+                                <td class="font-monospace text-center border-0 fw-lighter text-secondary">
+                                    @{
+                                        decimal markup = 0;
+                                        if (item.Produto?.Custo > 0)
+                                        {
+                                            markup = ((item.Produto.Preco - item.Produto.Custo) / item.Produto.Custo) * 100;
+                                        }
+                                    }
+                                    @((item.Produto?.Custo > 0) ? markup.ToString("N2", culture) + "%" : "0,00%")
+                                </td>
+                                <td class="text-end font-monospace fw-bold text-success text-center">
+                                    @item.Preco.ToString("C", culture)
+                                </td>
+                                <td class="text-end font-monospace fw-bold text-primary">
+                                    @(item.Produto != null ? item.Produto.Preco.ToString("C", culture) : "-")
+                                </td>
+                                <td class="font-monospace text-center border-0 fw-lighter text-secondary">
+                                    @item.DataInicio.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="font-monospace text-center border-0 fw-lighter text-secondary">
+                                    @item.DataFim.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-light text-danger"
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                data-bs-id="@item.Id" data-bs-name="@(item.Produto?.Nome ?? "ID: " + item.ProdutoId)"
+                                                data-nome-base="promoção"
+                                                data-bs-url="@Url.Action("Delete", "ProdutoPromocao")"
+                                                title="Excluir">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-box2 text-muted opacity-25" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3">Nenhuma promoção inserida.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPromocao" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Criar Nova Promoção</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formPromocao" asp-action="SalvarPromocao" asp-controller="ProdutoPromocao">
+
+                    <h6 class="fw-bold mt-3">Adicionar Produto(s)</h6>
+                    <div class="input-group mb-3">
+                        <input type="text" id="pesquisaProduto" class="form-control" placeholder="Buscar produto por nome ou ID...">
+                        <button id="btnPesquisar" class="btn btn-primary" type="button"><i class="bi bi-search"></i></button>
+                    </div>
+
+                    <div class="border rounded overflow-auto mb-4" style="height: 250px;">
+                        <table class="table table-hover mb-0 small">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 50px;">ID</th>
+                                    <th>Nome</th>
+                                    <th>Custo</th>
+                                    <th>Preço Venda</th>
+                                    <th>Margem</th>
+                                    <th style="width: 100px;">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaProdutosBusca">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h6 class="fw-bold mt-4 mb-2">Produtos Adicionados na Promoção</h6>
+                    <div class="border rounded overflow-auto" style="max-height: 250px;">
+                        <table class="table table-sm table-striped mb-0 small">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th style="width: 50px;">ID</th>
+                                    <th>Nome</th>
+                                    <th style="width: 120px;">Preço Base</th>
+                                    <th style="width: 150px;">Preço Promo. (R$)</th>
+                                    <th style="width: 140px;">Data Início</th>
+                                    <th style="width: 140px;">Data Fim</th>
+                                    <th style="width: 50px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaProdutosSelecionados">
+                                <tr><td colspan="7" class="text-center text-muted py-3">Nenhum produto adicionado.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="submit" form="formPromocao" class="btn btn-primary w-100 fw-bold" id="btnConfirmarPromocao" disabled>Salvar Promoção</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_DeleteModal" />
+<partial name="_ActivateModal" />
+
+
+@section Scripts {
+    <script>
+        // Array global para armazenar os produtos selecionados e seus valores/datas
+        let produtosSelecionados = [];
+
+        // Retorna a data atual no formato YYYY-MM-DD
+        function getTodayDateString() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Função para converter string pt-BR (vírgula) para float
+        function parseToFloat(value) {
+            if (!value) return 0;
+            if (typeof value === 'number') return value;
+            return parseFloat(value.toString().replace(/\./g, '').replace(',', '.'));
+        }
+
+        // Função para formatar float para pt-BR (vírgula)
+        function formatToBRL(value) {
+            if (value === null || isNaN(value)) return '0,00';
+            return parseFloat(value).toFixed(2).replace('.', ',');
+        }
+
+
+        // Função para realizar a busca de produtos via AJAX
+        function realizarBusca() {
+            const termo = $('#pesquisaProduto').val();
+            const urlBusca = '@Url.Action("BuscarProdutos", "Produtos")';
+
+            $.get(urlBusca, { termo: termo })
+                .done(function(data) {
+                    popularTabelaBusca(data);
+                })
+                .fail(function() {
+                    // alert("Erro ao buscar produtos.");
+                    $('#listaProdutosBusca').empty().append('<tr><td colspan="6" class="text-center text-danger">Erro ao carregar dados.</td></tr>');
+                });
+        }
+
+        // Função para popular a tabela de busca
+        function popularTabelaBusca(produtos) {
+            const $tbody = $('#listaProdutosBusca');
+            $tbody.empty();
+
+            if (produtos.length === 0) {
+                $tbody.append('<tr><td colspan="6" class="text-center text-muted py-3">Nenhum produto encontrado.</td></tr>');
+                return;
+            }
+
+            produtos.forEach(produto => {
+                // *** Usando camelCase (produto.id, produto.nome) conforme o servidor deve retornar ***
+                const isSelected = produtosSelecionados.some(p => p.Id === produto.id);
+                const custo = parseToFloat(produto.custo);
+                const preco = parseToFloat(produto.preco);
+                const idProduto = produto.id;
+                const nomeProduto = produto.nome;
+
+                const markup = (custo > 0) ? (((preco - custo) / custo) * 100).toFixed(2) : '0,00';
+
+                const row = `
+                    <tr data-id="${idProduto}" class="produto-row">
+                        <td>${idProduto}</td>
+                        <td>${nomeProduto}</td>
+                        <td>R$ ${formatToBRL(custo)}</td>
+                        <td>${markup}%</td>
+                        <td>R$ ${formatToBRL(preco)}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm ${isSelected ? 'btn-secondary' : 'btn-success btn-selecionar'}"
+                                data-id="${idProduto}"
+                                data-nome="${nomeProduto}"
+                                data-preco="${preco}"
+                                ${isSelected ? 'disabled' : ''}>
+                                ${isSelected ? 'Adicionado' : 'Selecionar'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+        }
+
+        // Função para atualizar a tabela de produtos selecionados
+        function atualizarTabelaSelecionados() {
+            const $tbody = $('#listaProdutosSelecionados');
+            $tbody.empty();
+
+            if (produtosSelecionados.length === 0) {
+                $tbody.append('<tr><td colspan="7" class="text-center text-muted py-3">Nenhum produto adicionado.</td></tr>');
+                $('#btnConfirmarPromocao').prop('disabled', true);
+                return;
+            }
+
+            $('#btnConfirmarPromocao').prop('disabled', false);
+
+            produtosSelecionados.forEach(produto => {
+                const row = `
+                    <tr data-id="${produto.Id}">
+                        <td>${produto.Id}</td>
+                        <td>${produto.Nome}</td>
+                        <td>R$ ${formatToBRL(produto.Preco)}</td>
+                        <td>
+                            <input
+                                type="text"
+                                data-id="${produto.Id}"
+                                class="form-control form-control-sm preco-promo-selecionado text-end"
+                                value="${formatToBRL(produto.PrecoPromocao)}"
+                                style="width:100%;"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="datetime-local"
+                                data-id="${produto.Id}"
+                                class="form-control form-control-sm data-inicio-selecionado"
+                                value="${produto.DataInicio}"
+                                style="width:100%;"
+                            />
+                        </td>
+                         <td>
+                            <input
+                                type="datetime-local"
+                                data-id="${produto.Id}"
+                                class="form-control form-control-sm data-fim-selecionado"
+                                value="${produto.DataFim}"
+                                style="width:100%;"
+                            />
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger btn-remover" data-id="${produto.Id}">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+        }
+
+        $(document).ready(function() {
+
+            // 1. ABRIR MODAL
+            $('#btn-abrir-modal').on('click', function() {
+                $('#modalPromocao').modal('show');
+                $('#pesquisaProduto').val('');
+                realizarBusca();
+                atualizarTabelaSelecionados();
+            });
+
+            // 2. BUSCA (Botão, Enter e Input em tempo real)
+            let searchTimer;
+
+            $('#btnPesquisar').on('click', realizarBusca);
+
+            $('#pesquisaProduto').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    realizarBusca();
+                }
+            }).on('input', function() {
+                // Implementação de Debounce (300ms) para pesquisa em tempo real
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(realizarBusca, 300);
+            });
+
+            // 3. SELEÇÃO DE PRODUTOS
+            $(document).on('click', '#listaProdutosBusca .btn-selecionar', function() {
+                const id = parseInt($(this).data('id'));
+                const nome = $(this).data('nome');
+                const precoBase = parseFloat($(this).data('preco'));
+
+                // Prevenção de duplicação (Embora o botão esteja desabilitado)
+                if (produtosSelecionados.some(p => p.Id === id)) {
+                    return;
+                }
+
+                // Adiciona ao array, inicializando Preço Promocional e Datas
+                produtosSelecionados.push({
+                    Id: id,
+                    Nome: nome,
+                    Preco: precoBase,
+                    DataInicio: getTodayDateString(),
+                    DataFim: getTodayDateString(),
+                });
+
+                // Atualiza as duas tabelas
+                realizarBusca();
+                atualizarTabelaSelecionados();
+            });
+
+            // 4. REMOÇÃO DE PRODUTOS
+            $(document).on('click', '#listaProdutosSelecionados .btn-remover', function() {
+                const idParaRemover = parseInt($(this).data('id'));
+
+                produtosSelecionados = produtosSelecionados.filter(p => p.Id !== idParaRemover);
+
+                realizarBusca();
+                atualizarTabelaSelecionados();
+            });
+
+            // 5. ATUALIZAÇÃO DO PREÇO PROMOCIONAL AO DIGITAR
+            $(document).on('change', '#listaProdutosSelecionados .preco-promo-selecionado', function() {
+                const idProduto = parseInt($(this).data('id'));
+                const novoPreco = parseToFloat($(this).val());
+
+                if (!isNaN(novoPreco) && novoPreco >= 0) {
+                    const produto = produtosSelecionados.find(p => p.Id === idProduto);
+                    if (produto) {
+                        produto.PrecoPromocao = novoPreco;
+                    }
+                    $(this).val(formatToBRL(novoPreco));
+                } else {
+                    // alert("Por favor, insira um valor numérico válido.");
+                    const produto = produtosSelecionados.find(p => p.Id === idProduto);
+                    if(produto) $(this).val(formatToBRL(produto.PrecoPromocao));
+                }
+            });
+
+            // 6. ATUALIZAÇÃO DA DATA DE INÍCIO
+            $(document).on('change', '#listaProdutosSelecionados .data-inicio-selecionado', function() {
+                const idProduto = parseInt($(this).data('id'));
+                const novaData = $(this).val();
+
+                const produto = produtosSelecionados.find(p => p.Id === idProduto);
+                if (produto) {
+                    produto.DataInicio = novaData;
+                }
+            });
+
+            // 7. ATUALIZAÇÃO DA DATA DE FIM
+            $(document).on('change', '#listaProdutosSelecionados .data-fim-selecionado', function() {
+                const idProduto = parseInt($(this).data('id'));
+                const novaData = $(this).val();
+
+                const produto = produtosSelecionados.find(p => p.Id === idProduto);
+                if (produto) {
+                    produto.DataFim = novaData;
+                }
+            });
+
+
+            // 8. SUBMISSÃO DO FORMULÁRIO (SALVAR)
+            // O botão type="submit" aciona o form, então apenas precisamos do manipulador submit:
+            $('#formPromocao').on('submit', function(e) {
+                e.preventDefault();
+
+                const $btnSalvar = $('#btnConfirmarPromocao');
+
+                if (produtosSelecionados.length === 0) {
+                    // alert("Selecione pelo menos um produto para a promoção.");
+                    return;
+                }
+
+                // **DESABILITA O BOTÃO IMEDIATAMENTE PARA PREVENIR DUPLICAÇÃO**
+                $btnSalvar.prop('disabled', true).text('Salvando...');
+
+                let isValid = true;
+
+                // Mapeamento e Validação (A propriedade 'Preco' é enviada no lugar de 'PrecoPromocao')
+                const itensPromocao = produtosSelecionados.map(p => {
+                    if (!p.PrecoPromocao || !p.DataInicio || !p.DataFim) {
+                        isValid = false;
+                    }
+                    return {
+                        ProdutoId: p.Id, // CORREÇÃO: Enviando ProdutoId
+                        Preco: p.PrecoPromocao, // CORRIGIDO: Enviando o valor promocional no campo Preco
+                        DataInicio: p.DataInicio,
+                        DataFim: p.DataFim
+                    };
+                });
+
+                if (!isValid) {
+                    // alert("Preencha o Preço Promocional, Data de Início e Data de Fim para TODOS os produtos selecionados.");
+                    $btnSalvar.prop('disabled', false).text('Salvar Promoção'); // Reabilita
+                    return;
+                }
+
+                const dadosPromocao = {
+                    Produtos: itensPromocao
+                };
+
+                // Ação de salvamento via AJAX
+                $.ajax({
+                    url: '@Url.Action("SalvarPromocao", "ProdutoPromocao")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dadosPromocao),
+                    success: function(response) {
+                        if (response.sucesso) {
+                            // alert(response.mensagem || "Promoções salvas com sucesso!");
+                            $('#modalPromocao').modal('hide');
+                            location.reload();
+                        } else {
+                            // alert("Erro ao salvar: " + response.mensagem);
+                            $btnSalvar.prop('disabled', false).text('Salvar Promoção');
+                        }
+                    },
+                    error: function() {
+                        // alert("Erro de comunicação com o servidor.");
+                        $btnSalvar.prop('disabled', false).text('Salvar Promoção');
+                    }
+                });
+            });
+        });
+    </script>
 }
-    </tbody>
-</table>
