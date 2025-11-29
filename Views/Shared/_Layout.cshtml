@@ -38,6 +38,7 @@
             color: var(--sidebar-text);
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             transition: all 0.3s;
             z-index: 1000;
             height: 100vh; /* Garante altura total */
@@ -56,11 +57,11 @@
         }
 
         .sidebar-menu {
-            padding: 1rem 0;
+            /* padding: 1rem 0; */
             overflow-y: auto;
             overflow-x: hidden;
             font-size: 0.8rem;
-            flex: 1;
+            /* flex: 1; */
             width: 100%; /* Garante largura total */
         }
 
@@ -211,7 +212,7 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" asp-area="" asp-controller="ProdutoPromocao" asp-action="Index">
-                        <i class="bi bi-receipt me-2"></i>Promoções
+                        <i class="bi bi-receipt"></i>Promoções
                     </a>
                 </li>
                 <li class="nav-item">
@@ -226,7 +227,7 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="TipoPagamentoes" asp-action="Index">
-                        <i class="bi bi-wallet-fill"></i> Formas Pagto
+                        <i class="bi bi-wallet-fill"></i> Formas Pagamento
                     </a>
                 </li>
             </ul>
