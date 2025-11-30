@@ -271,6 +271,11 @@
                             <i class="bi bi-safe2-fill"></i> Fechamentos
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Vendas" asp-action="VendasPendentes">
+                            <i class="bi bi-bank"></i> Pendências
+                        </a>
+                    </li>
 
                     <li class="nav-title">Cadastros</li>
 
@@ -297,14 +302,6 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="ProdutoPromocao" asp-action="Index">
                             <i class="bi bi-percent"></i> Promoções
-                        </a>
-                    </li>
-
-                    <li class="nav-title">Estatísticas</li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Vendas" asp-action="VendasPendentes">
-                            <i class="bi bi-bank"></i> Pendências
                         </a>
                     </li>
 
@@ -384,20 +381,53 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Ativar Link Atual
+            // 1. Pega o caminho atual e remove query strings (?page=1 etc)
             const currentPath = window.location.pathname.toLowerCase();
             const links = document.querySelectorAll('.sidebar-menu-container .nav-link');
 
+            let bestMatchLink = null;
+            let maxMatchLength = 0;
+
             links.forEach(link => {
                 const href = link.getAttribute('href').toLowerCase();
-                if (href.length > 1 && currentPath.includes(href)) {
-                    link.classList.add('active');
-                } else if (currentPath === '/' && href === '/') {
-                    link.classList.add('active');
+
+                // Ignora links vazios ou âncoras simples
+                if (!href || href === '#') return;
+
+                // Caso 1: Match Exato (Prioridade Máxima)
+                // Ex: Estou em /Vendas e o link é /Vendas
+                if (currentPath === href) {
+                    bestMatchLink = link;
+                    maxMatchLength = 9999; // Força ser o vencedor
+                }
+                // Caso 2: Começa com (Para sub-páginas como /Vendas/Edit/1)
+                // Só entra aqui se ainda não achou match exato
+                else if (currentPath.startsWith(href) && href !== '/' && maxMatchLength < 9999) {
+
+                    // AQUI ESTÁ O TRUQUE:
+                    // Se eu estou em /Vendas/VendasPendentes
+                    // Link A: /Vendas (tamanho 7) -> Match
+                    // Link B: /Vendas/VendasPendentes (tamanho 23) -> Match
+                    // O Link B é maior, então ele ganha e substitui o Link A como 'bestMatchLink'
+
+                    if (href.length > maxMatchLength) {
+                        maxMatchLength = href.length;
+                        bestMatchLink = link;
+                    }
+                }
+                // Caso 3: Home Page (Raiz)
+                else if (currentPath === '/' && href === '/') {
+                    bestMatchLink = link;
+                    maxMatchLength = 9999;
                 }
             });
 
-            // Lógica Mobile Sidebar
+            // Aplica a classe active apenas no vencedor
+            if (bestMatchLink) {
+                bestMatchLink.classList.add('active');
+            }
+
+            // Lógica Mobile Sidebar 
             const sidebar = document.getElementById('appSidebar');
             const overlay = document.getElementById('sidebarOverlay');
             const toggleBtn = document.getElementById('sidebarToggle');
@@ -423,4 +453,3 @@
     <partial name="_DeleteModal" />
 </body>
 </html>
-""
