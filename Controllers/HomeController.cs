@@ -47,7 +47,8 @@ namespace PDV.Controllers
                     Id = pvm.Produto.Id,
                     Nome = pvm.Produto.Nome,
                     Preco = pvm.PromocaoAtiva != null ? pvm.PromocaoAtiva.Preco : pvm.Produto.Preco,
-                    Custo = pvm.Produto.Custo
+                    Custo = pvm.Produto.Custo,
+                    CategoriaId = pvm.Produto.CategoriaId
                 })
                 .OrderBy(p => p.Nome)
                 .ToList();
