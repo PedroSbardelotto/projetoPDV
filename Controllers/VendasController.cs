@@ -115,8 +115,9 @@ namespace PDV.Controllers
                 vendas.ProdutosVenda = listaProdutos;
 
                 _context.Add(vendas);
-                await _context.SaveChangesAsync();
 
+                EditarQuantidadeProdutos(listaProdutos!);
+                await _context.SaveChangesAsync();
                 TempData["Sucesso"] = "Pendência gerada com sucesso!";
             }
             // =================================================================================
@@ -172,7 +173,7 @@ namespace PDV.Controllers
 
                         _context.Add(novaVenda);
                     }
-
+                    EditarQuantidadeProdutos(listaProdutos!);
                     await _context.SaveChangesAsync();
                     TempData["Sucesso"] = "Venda finalizada com sucesso!";
                 }
@@ -300,6 +301,26 @@ namespace PDV.Controllers
             return View(venda);
         }
 
+        private async void EditarQuantidadeProdutos(List<ProdutosVenda> listaProdutos)
+        {
+            if (listaProdutos!.Count > 0)
+            {
+                foreach (var produto in listaProdutos)
+                {
+                    var prodBd = await _context.Produto.FirstOrDefaultAsync(p => p.Id == produto.ProdutoId);
+                    if (prodBd != null)
+                    {
+                        prodBd.Quantidade -= produto.Quantidade;
+                        if (prodBd.Quantidade <= 0)
+                        {
+                            prodBd.Quantidade = 0;
+                            prodBd.Status = false;
+                        }
+                        _context.Update(prodBd);
+                    }
+                }
+            }
+        }
         private bool VendasExists(int id)
         {
             return (_context.Vendas?.Any(e => e.Id == id)).GetValueOrDefault();
