@@ -9,17 +9,41 @@
     var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
     var nextDisabled = !Model.HasNextPage ? "disabled" : "";
 }
+<style>
+    /* --- CSS PARA O MODAL DE PAGAMENTO (CARDS) --- */
+    .payment-option-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 2px solid #e9ecef;
+        background-color: #fff;
+        color: #6c757d;
+    }
 
+        .payment-option-card:hover {
+            border-color: #adb5bd;
+            transform: translateY(-2px);
+        }
+
+        /* Estado Selecionado */
+        .payment-option-card.selected {
+            border-color: #198754; /* Verde Success */
+            background-color: #f0fff4; /* Fundo verde claro */
+            color: #198754;
+        }
+
+    .payment-icon {
+        font-size: 1.5rem;
+        display: block;
+        margin-bottom: 5px;
+    }
+</style>
 <div class="container-fluid py-4">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark mb-0">Vendas</h2>
-            <p class="text-muted small mb-0">Histórico de transações e movimento</p>
+            <h2 class="fw-bold text-dark mb-0">Vendas Pendentes</h2>
+            <p class="text-muted small mb-0">Histórico de transações pendentes</p>
         </div>
-        <a asp-action="Index" asp-controller="Home" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-3">
-            <i class="bi bi-cart-plus-fill me-2"></i>Nova Venda
-        </a>
     </div>
 
     <!-- Card da Tabela -->
@@ -112,12 +136,10 @@
                                 <!-- Ações -->
                                 <td class="pe-4 text-end">
                                     <div class="btn-group shadow-sm rounded-3">
-                                        @if (!isConcluido)
-                                        {
-                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white border text-primary" title="Editar">
-                                                <i class="bi bi-pencil-fill"></i>
-                                            </a>
-                                        }
+                                        <button type="button" class="btn btn-sm btn-success fw-bold shadow-sm"
+                                                onclick="abrirModalPagamento(@item.Id, '@item.ValorTotal.ToString("C", culture)')">
+                                            <i class="bi bi-currency-dollar me-1"></i>
+                                        </button>
 
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-white border text-info" title="Ver Recibo">
                                             <i class="bi bi-receipt"></i>
@@ -170,8 +192,131 @@
         }
     </div>
 </div>
+<div class="modal fade" id="modalPagamentoPendencia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-wallet2 me-2"></i>Receber Pagamento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
+            <form asp-action="PagarPendencia" method="post" id="formPagarPendencia">
+
+                <div class="modal-body p-4">
+                    <input type="hidden" name="id" id="inputVendaId" />
+                    <input type="hidden" name="tipoPagamentoId" id="inputTipoPagamentoId" required />
+
+                    <div class="text-center mb-4">
+                        <p class="text-muted text-uppercase small fw-bold mb-1 letter-spacing-1">Valor a Receber</p>
+                        <h2 class="text-success fw-bolder display-5" id="displayValor">R$ 0,00</h2>
+                        <div class="badge bg-light text-dark border mt-2">
+                            Venda <span id="displayVendaId">#</span>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25 mb-4">
+
+                    <p class="fw-bold mb-3 text-secondary">Selecione a forma de pagamento:</p>
+
+                    <div class="row g-3">
+                        @if (ViewBag.TipoPagamentos != null)
+                        {
+                            foreach (var tipo in ViewBag.TipoPagamentos)
+                            {
+                                // Lógica simples para ícones
+                                string iconClass = "bi-cash-coin";
+                                string desc = tipo.Descricao.ToLower();
+
+                                if (desc.Contains("pix")) iconClass = "bi-qr-code-scan";
+                                else if (desc.Contains("crédito")) iconClass = "bi-credit-card-2-front";
+                                else if (desc.Contains("débito")) iconClass = "bi-credit-card";
+                                else if (desc.Contains("dinheiro") || desc.Contains("espécie")) iconClass = "bi-cash-stack";
+
+                                <div class="col-6">
+                                    <div class="card payment-option-card h-100 py-3 text-center"
+                                         onclick="selecionarPagamento(this, @tipo.Id)">
+                                        <div class="card-body p-0">
+                                            <i class="bi @iconClass payment-icon"></i>
+                                            <span class="fw-semibold small">@tipo.Descricao</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                Nenhuma forma de pagamento cadastrada.
+                                <br><small>Verifique o controller se ViewBag.TipoPagamentos está sendo preenchido.</small>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Mensagem de erro visual -->
+                    <div id="msgErroPagamento" class="text-danger small text-center mt-2 d-none">
+                        <i class="bi bi-exclamation-circle"></i> Selecione uma opção para continuar.
+                    </div>
+                </div>
+
+                <!-- Footer com Botão Confirmar -->
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4" id="btnConfirmarPagamento" disabled>
+                        <i class="bi bi-check-lg me-2"></i>Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- Modais Necessários -->
 <partial name="_DeleteModal" />
 <partial name="_ActivateModal" />
+
+
+
+
+@section Scripts {
+    <script type="text/javascript">
+
+        // Função para abrir o modal e setar os valores
+        function abrirModalPagamento(vendaId, valorFormatado) {
+            // Joga os valores nos campos do modal
+            document.getElementById('inputVendaId').value = vendaId;
+            document.getElementById('displayVendaId').textContent = '#' + vendaId;
+            document.getElementById('displayValor').textContent = valorFormatado;
+
+            // Reseta seleção anterior do modal
+            document.getElementById('inputTipoPagamentoId').value = "";
+            document.querySelectorAll('.payment-option-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById('btnConfirmarPagamento').disabled = true;
+            document.getElementById('msgErroPagamento').classList.add('d-none');
+
+            // Abre o modal usando Bootstrap 5
+            var modalEl = document.getElementById('modalPagamentoPendencia');
+            var modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        // Lógica de Seleção Visual (Cards)
+        function selecionarPagamento(elemento, id) {
+            // 1. Remove a classe 'selected' de todos os cards
+            document.querySelectorAll('.payment-option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // 2. Adiciona a classe 'selected' no clicado
+            elemento.classList.add('selected');
+
+            // 3. Atualiza o input hidden (que o formulário vai enviar)
+            document.getElementById('inputTipoPagamentoId').value = id;
+
+            // 4. Habilita o botão de confirmar
+            document.getElementById('btnConfirmarPagamento').disabled = false;
+
+            // 5. Esconde mensagem de erro se houver
+            document.getElementById('msgErroPagamento').classList.add('d-none');
+        }
+    </script>
+}
