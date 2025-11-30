@@ -30,7 +30,15 @@ namespace PDV.Controllers
             
             return View(await PaginatedList<Vendas>.CreateAsync(pDVContext.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
+        public async Task<IActionResult> VendasPendentes(int? pageNumber)
+        {
+            var pDVContext = _context.Vendas.Include(v => v.Cliente).Include(v => v.Fechamento).Include(v => v.TipoPagamento).Include(v => v.UsuarioEmpresa).Where(v=> v.Status == 2).OrderByDescending(v => v.DataEntrada);
+            pDVContext = pDVContext.OrderByDescending(p => p.DataEntrada);
+            int pageSize = 10;
 
+            ViewBag.TipoPagamentos = await _context.TipoPagamento.ToListAsync();
+            return View(await PaginatedList<Vendas>.CreateAsync(pDVContext.AsNoTracking(), pageNumber ?? 1, pageSize));
+        }
         // GET: Vendas/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -301,6 +309,37 @@ namespace PDV.Controllers
             return View(venda);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PagarPendencia(int id, int tipoPagamentoId)
+        {
+            // Busca a venda
+            Vendas pendencia = await _context.Vendas.FindAsync(id);
+
+            if (pendencia == null)
+            {
+                TempData["Erro"] = "Pendência não encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            pendencia.Status = (short)Situacao.Finalizado;
+            pendencia.TipoPagamentoId = tipoPagamentoId;
+            pendencia.DataAtualizacao = DateTime.Now;
+
+            try
+            {
+                _context.Update(pendencia);
+                await _context.SaveChangesAsync();
+                TempData["Sucesso"] = "Pagamento realizado com sucesso!";
+            }
+            catch
+            {
+                TempData["Erro"] = "Erro ao processar pagamento.";
+            }
+
+            return RedirectToAction("VendasPendentes");
+        }
+
         private async void EditarQuantidadeProdutos(List<ProdutosVenda> listaProdutos)
         {
             if (listaProdutos!.Count > 0)
@@ -321,6 +360,7 @@ namespace PDV.Controllers
                 }
             }
         }
+
         private bool VendasExists(int id)
         {
             return (_context.Vendas?.Any(e => e.Id == id)).GetValueOrDefault();
