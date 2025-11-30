@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PDV.Data;
 
@@ -11,9 +12,10 @@ using PDV.Data;
 namespace PDV.Migrations
 {
     [DbContext(typeof(PDVContext))]
-    partial class PDVContextModelSnapshot : ModelSnapshot
+    [Migration("20251130183240_addFilaFaturamento")]
+    partial class addFilaFaturamento
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,10 +244,6 @@ namespace PDV.Migrations
 
                     b.Property<int>("Serie")
                         .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("ValorTotal")
                         .HasColumnType("decimal(18,2)");

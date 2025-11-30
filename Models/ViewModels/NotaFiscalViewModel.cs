@@ -11,11 +11,15 @@
         public string Modelo { get; set; }
         public string Serie { get; set; }
         public string NaturesaOperacao { get; set; }
+        public string Status { get; set; }
 
         // Complementos 
         public List<ProdutoNFe> ListaProdutos { get; set; } = new List<ProdutoNFe>();
         public List<Produto> ListaProdutosCadastrados { get; set; } = new List<Produto>();
         public List<ProdutoFaturamento> ListaProdutosFaturamento { get; set; } = new List<ProdutoFaturamento>();
+        public List<FilaFaturamento> ListaFilaFaturamento { get; set; } = new List<FilaFaturamento>();
+        public List<NotaFiscalViewModel> ListaFilaFaturamentoDetails { get; set; } = new List<NotaFiscalViewModel>();
+
         public int CodigoFornecedor { get; set; }
         public string NomeFornecedor { get; set; }
         public string CNPJ { get; set; }
@@ -54,5 +58,15 @@
         public string CustoAntigo { get; set; }
         public string NomeCategoria { get; set; }
         public string DataAtualizacao { get; set; }
+    }
+
+    public class FilaFaturamento
+    {
+        public int CodigoFornecedor { get; set; }
+        public int CodigoNFe { get; set; }
+        public int CodigoProduto { get; set; }
+        public decimal Quantidade { get; set; }
+        public decimal Custo { get; set; }
+        public decimal ValorTotal { get; set; }
     }
 }

@@ -17,6 +17,7 @@ namespace PDV.Models
         public DateTime DataEntrada { get; set; }
         public int Serie { get; set; }
         public string NatuOp { get; set; }
+        public string Status { get; set; }
         public List<ProdutosNFe> Produtos { get; set; }
 
     }

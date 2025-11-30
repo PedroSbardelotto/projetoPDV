@@ -29,35 +29,47 @@ namespace PDV.Controllers
         }
 
         // GET: Vendas/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details()
         {
-            if (id == null || _context.Vendas == null)
+            NotaFiscalViewModel notaFiscalView = new NotaFiscalViewModel();
+
+            notaFiscalView.ListaFilaFaturamentoDetails = new List<NotaFiscalViewModel>();
+
+            List<NotaFiscal> lstNotafiscalPendente = await _context.NotaFiscal.Where(x => x.Status == "PENDENTE").Include(x => x.Produtos).ToListAsync();
+
+            foreach(var item in lstNotafiscalPendente)
             {
-                return NotFound();
+                var objFornecedor = await _context.Fornecedor.Where(x => x.Id == item.CodigoFornecedor).FirstOrDefaultAsync();
+
+                var listaFila = new List<FilaFaturamento>();
+
+                foreach (var prod in item.Produtos)
+                {
+                    listaFila.Add(new FilaFaturamento
+                    {
+                        CodigoFornecedor = item.CodigoFornecedor,
+                        CodigoNFe = Convert.ToInt32(item.Numero),
+                        CodigoProduto = prod.Id,
+                        Quantidade = prod.Quantidade,
+                        Custo = prod.Preco,
+                        ValorTotal = prod.ValorTotal
+                    });
+                }
+
+                notaFiscalView.ListaFilaFaturamentoDetails.Add(new NotaFiscalViewModel
+                {
+                    Id = item.Id,
+                    DataEmissao = item.DataEmissao,
+                    Numero = item.Numero,
+                    CodigoFornecedor = objFornecedor.Id,
+                    NomeFornecedor = objFornecedor.NomeRazao,
+                    ValorTotal = item.ValorTotal,
+                    Status = item.Status,
+                    ListaFilaFaturamento = listaFila
+                });
             }
 
-            var vendas = await _context.Vendas
-                .Include(v => v.Cliente)
-                .Include(v => v.Fechamento)
-                .Include(v => v.TipoPagamento)
-                .Include(v => v.UsuarioEmpresa)
-                .Include(v => v.ProdutosVenda)
-                    .ThenInclude(pv => pv.Produto)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (vendas == null)
-            {
-                return NotFound();
-            }
-
-            var somaValores = vendas.ProdutosVenda.Sum(x => x.Produto.Preco * x.Quantidade);
-
-            if (vendas.ValorTotal != somaValores)
-            {
-                var novoValor = somaValores - vendas.ValorTotal;
-                vendas.ValorTotal = somaValores - novoValor;
-            }
-
-            return View(vendas);
+            return View(notaFiscalView);
         }
 
         // GET: Vendas/Create
@@ -182,30 +194,10 @@ namespace PDV.Controllers
             return RedirectToAction("Index", "Home");
         }
         // GET: Vendas/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(NotaFiscalViewModel notaFiscalViewModel)
         {
-            if (id == null || _context.Vendas == null)
-            {
-                return NotFound();
-            }
 
-            // ADICIONEI OS INCLUDES PARA TRAZER OS DADOS DE VISUALIZAÇÃO
-            var vendas = await _context.Vendas
-                .Include(v => v.Cliente)
-                .Include(v => v.TipoPagamento)
-                .FirstOrDefaultAsync(v => v.Id == id);
-
-            if (vendas == null)
-            {
-                return NotFound();
-            }
-
-            // Apenas o Tipo de Pagamento precisa ser um Dropdown selecionável
-            ViewData["TipoPagamentoId"] = new SelectList(_context.TipoPagamento, "Id", "Descricao", vendas.TipoPagamentoId);
-
-            // Removemos os outros ViewDatas que estavam causando o erro ou eram desnecessários para essa etapa
-
-            return View(vendas);
+            return View("Edit", notaFiscalViewModel);
         }
 
         // POST: Vendas/Edit/5
@@ -326,7 +318,15 @@ namespace PDV.Controllers
 
             if (objFornecedor == null)
             {
-                TempData["Erro"] = "Fornecedor não cadatrado.";
+                TempData["Aviso"] = "Fornecedor não cadatrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Numero == ide.nNF).FirstOrDefaultAsync();
+
+            if (objFornecedor != null)
+            {
+                TempData["Aviso"] = "Este XML já foi importado.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -377,8 +377,6 @@ namespace PDV.Controllers
             notaFiscalViewModel.ConteudoXML = xmlContent;
             notaFiscalViewModel.AbrirModal = true;
 
-            //TempData["Sucesso"] = "nota importada com sucesso";
-            //return View(notaFiscalViewModel);
             return View("index", notaFiscalViewModel);
         }
 
@@ -426,6 +424,7 @@ namespace PDV.Controllers
             nfe.DataEntrada = DateTime.Now;
             nfe.Serie = Convert.ToInt32(notaFiscalViewModel.Serie);
             nfe.NatuOp = notaFiscalViewModel.NaturesaOperacao;
+            nfe.Status = "PENDENTE";
             nfe.Produtos = notaFiscalViewModel.ListaProdutos.Select(x => new ProdutosNFe
             {
                 CodigoProdNFe = x.CodigoProdutoNFe,
@@ -438,8 +437,8 @@ namespace PDV.Controllers
                 CodigoProduto = x.Produto.Id
             }).ToList();
 
-            //await _context.NotaFiscal.AddAsync(nfe);
-            //await _context.SaveChangesAsync();
+            await _context.NotaFiscal.AddAsync(nfe);
+            await _context.SaveChangesAsync();
 
             int CodigoNFe = nfe.Id;
 
@@ -451,8 +450,8 @@ namespace PDV.Controllers
                                         ProdutoId = x.Produto.Id
                                     }).ToList();
 
-            //await _context.ProdutoFornecedor.AddRangeAsync(lstProdutoCadastro);
-            //await _context.SaveChangesAsync();
+            await _context.ProdutoFornecedor.AddRangeAsync(lstProdutoCadastro);
+            await _context.SaveChangesAsync();
 
             notaFiscalViewModel.ListaProdutosFaturamento = new List<ProdutoFaturamento>();
 
@@ -475,13 +474,13 @@ namespace PDV.Controllers
                 });
             }
 
+            notaFiscalViewModel.Id = CodigoNFe;
+
             return View("Edit", notaFiscalViewModel);
         }
 
         public async Task<IActionResult> AlteraProdutos(NotaFiscalViewModel notaFiscalViewModel)
         {
-
-
             foreach(var item in notaFiscalViewModel.ListaProdutosFaturamento)
             {
                 Produto objProduto = await _context.Produto.FirstOrDefaultAsync(x => x.Id == Convert.ToUInt32(item.CodigoProduto));
@@ -497,8 +496,59 @@ namespace PDV.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            NotaFiscal objNotaFiscal = await _context.NotaFiscal.FindAsync(notaFiscalViewModel.Id);
+
+            objNotaFiscal.Status = "FATURADA";
+            _context.NotaFiscal.Update(objNotaFiscal);
+            await _context.SaveChangesAsync();
+
             TempData["Sucesso"] = "Produtos alterados com  Sucesso";
             return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> FaturamentoPendente(NotaFiscalViewModel notaFiscalViewModel)
+        {
+
+            TempData["Aviso"] = "Produtos não faturados!";
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> FaturarPendente(NotaFiscalViewModel notaFiscalViewModel)
+        {
+            NotaFiscalViewModel notaFiscalView = new NotaFiscalViewModel();
+
+            notaFiscalView.ListaProdutosFaturamento = new List<ProdutoFaturamento>();
+            List<ProdutoFaturamento> lstProdFaturamento = new List<ProdutoFaturamento>();
+
+            NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Id == notaFiscalViewModel.Id).Include(x => x.Produtos).FirstOrDefaultAsync();
+            Fornecedor objFornecedor = await _context.Fornecedor.Where(x => x.Id == objNFe.CodigoFornecedor).FirstOrDefaultAsync();
+
+            foreach(var item in objNFe.Produtos)
+            {
+                Produto objProduto = await _context.Produto.Include(x => x.Categoria).Where(x => x.Id == item.CodigoProduto).FirstOrDefaultAsync();
+
+                lstProdFaturamento.Add(new ProdutoFaturamento
+                {
+                    CodigoProduto = item.CodigoProduto.ToString(),
+                    NomeProduto = item.Nome,
+                    Quantidade = item.Quantidade.ToString("F2", CultureInfo.InvariantCulture),
+                    QuantidadeEstoque = objProduto.Quantidade.ToString(),
+                    Custo = item.Preco.ToString(),
+                    PrecoVenda = objProduto.Preco.ToString(),
+                    ValorTotal = item.ValorTotal.ToString(),
+                    CustoAntigo = objProduto.Preco.ToString(),
+                    NomeCategoria = objProduto.Categoria.Nome,
+                    DataAtualizacao = objProduto.DataAtualizacao.ToString("dd/MM/yyyy")
+                });
+            }
+
+            notaFiscalView.CodigoFornecedor = objNFe.CodigoFornecedor;
+            notaFiscalView.Numero = objNFe.Numero;
+            notaFiscalView.DataEmissao = objNFe.DataEmissao;
+            notaFiscalView.NomeFornecedor = objFornecedor.NomeRazao;
+            notaFiscalView.ListaProdutosFaturamento = lstProdFaturamento;
+
+            return View("Edit", notaFiscalView);
         }
     }
 }
