@@ -19,6 +19,5 @@ namespace PDV.Models
         public DateTime DataAbertura { get; set; }
         [Display(Name = "Data Fechamento")]
         public DateTime? DataFechamento { get; set; }
-
     }
 }

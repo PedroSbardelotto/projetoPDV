@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PDV.Data;
 
@@ -11,9 +12,10 @@ using PDV.Data;
 namespace PDV.Migrations
 {
     [DbContext(typeof(PDVContext))]
-    partial class PDVContextModelSnapshot : ModelSnapshot
+    [Migration("20251129154925_AdicionandoNNotaFiscalEProdutoFornecedor")]
+    partial class AdicionandoNNotaFiscalEProdutoFornecedor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -201,16 +203,9 @@ namespace PDV.Migrations
                     b.Property<DateTime>("DataEntrada")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("NatuOp")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Numero")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Serie")
-                        .HasColumnType("int");
 
                     b.Property<decimal>("ValorTotal")
                         .HasColumnType("decimal(18,2)");
@@ -271,24 +266,19 @@ namespace PDV.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("CodProdNF")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CodProdNF")
+                        .HasColumnType("int");
 
                     b.Property<int>("CodigoFornecedor")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CodigoNF")
+                    b.Property<int>("CodigoNF")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProdutoId")
+                    b.Property<int>("CodigoProduto")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CodigoFornecedor");
-
-                    b.HasIndex("ProdutoId");
 
                     b.ToTable("ProdutoFornecedor");
                 });
@@ -321,51 +311,6 @@ namespace PDV.Migrations
                     b.HasIndex("ProdutoId");
 
                     b.ToTable("ProdutoPromocao");
-                });
-
-            modelBuilder.Entity("PDV.Models.ProdutosNFe", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("CodigoProdNFe")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("CodigoProduto")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("NotaFiscalId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Preco")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Quantidade")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("QuantidadeNFe")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("UnidadeMedidaNFe")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("ValorTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NotaFiscalId");
-
-                    b.ToTable("ProdutosNFe");
                 });
 
             modelBuilder.Entity("PDV.Models.ProdutosVenda", b =>
@@ -522,25 +467,6 @@ namespace PDV.Migrations
                     b.Navigation("Categoria");
                 });
 
-            modelBuilder.Entity("PDV.Models.ProdutoFornecedor", b =>
-                {
-                    b.HasOne("PDV.Models.Fornecedor", "Fornecedor")
-                        .WithMany()
-                        .HasForeignKey("CodigoFornecedor")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PDV.Models.Produto", "Produto")
-                        .WithMany()
-                        .HasForeignKey("ProdutoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Fornecedor");
-
-                    b.Navigation("Produto");
-                });
-
             modelBuilder.Entity("PDV.Models.ProdutoPromocao", b =>
                 {
                     b.HasOne("PDV.Models.Produto", "Produto")
@@ -550,17 +476,6 @@ namespace PDV.Migrations
                         .IsRequired();
 
                     b.Navigation("Produto");
-                });
-
-            modelBuilder.Entity("PDV.Models.ProdutosNFe", b =>
-                {
-                    b.HasOne("PDV.Models.NotaFiscal", "NotaFiscal")
-                        .WithMany("Produtos")
-                        .HasForeignKey("NotaFiscalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("NotaFiscal");
                 });
 
             modelBuilder.Entity("PDV.Models.ProdutosVenda", b =>
@@ -623,11 +538,6 @@ namespace PDV.Migrations
             modelBuilder.Entity("PDV.Models.Cliente", b =>
                 {
                     b.Navigation("Vendas");
-                });
-
-            modelBuilder.Entity("PDV.Models.NotaFiscal", b =>
-                {
-                    b.Navigation("Produtos");
                 });
 
             modelBuilder.Entity("PDV.Models.Vendas", b =>

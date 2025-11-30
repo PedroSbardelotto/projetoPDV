@@ -1,0 +1,365 @@
+﻿@model PDV.Models.ViewModels.NotaFiscalViewModel
+
+@{
+    ViewData["Title"] = "Faturar";
+}
+
+<style>
+    :root {
+        --primary-color: #0d6efd;
+        --bg-light: #f8f9fa;
+    }
+
+    body {
+        background-color: #f4f6f8;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Topbar estilo Dashboard */
+    .top-bar {
+        background: white;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    /* Estilização dos Cards */
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+    }
+
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid #f0f0f0;
+        font-weight: 600;
+        color: #495057;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .card-header i {
+            color: var(--primary-color);
+        }
+
+    /* Inputs mais limpos */
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        border-color: #86b7fe;
+    }
+
+    /* Destaque para o valor total */
+    .total-box {
+        background-color: #e8f3ff;
+        border: 1px solid #cfe2ff;
+        color: #084298;
+        padding: 10px;
+        border-radius: 6px;
+        text-align: right;
+    }
+
+    .total-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .total-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.5em 1em;
+        border-radius: 50rem;
+        background-color: #d1e7dd;
+        color: #0f5132;
+        font-weight: 600;
+    }
+
+    /* Tabela */
+    .table-custom th {
+        background-color: #f8f9fa;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #495057;
+    }
+
+    .table-custom td {
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    /* Botão Flutuante Mobile (Opcional) */
+    .btn-fab {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+    }
+
+    .bg-prod-nao-cadastrados {
+        background-color: #ed9ea5;
+    }
+</style>
+
+<div class="container-fluid py-4 back-color">
+    <form asp-action="AlteraProdutos" asp-for="NotaFiscal">
+        <div class="top-bar sticky-top">
+            <div>
+                <h4 class="m-0 fw-bold text-primary"><i class="bi bi-currency-dollar me-2"></i>Faturamento</h4>
+                <small class="text-muted"></small>
+            </div>
+            <div class="d-flex gap-2">
+                <button asp-action="Index" class="btn btn-outline-secondary d-none d-md-block">
+                    <i class="bi bi-x me-1"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check me-2"></i>Confirmar
+                </button>
+                <input type="file" id="fileInput" style="display: none;" accept=".xml">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle"></i> Dados da Nota
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-2 col-6">
+                                <label class="form-label">Número NF</label>
+                                <input type="text" class="form-control fw-bold" value="@Model.Numero" readonly>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label class="form-label">Data Emissão</label>
+                                <input type="datetime" class="form-control" value="@Model.DataEmissao" readonly>
+                            </div>
+                            <div class="col-md-1 col-6">
+                                <label class="form-label">Cód. Forn.</label>
+                                <input type="text" class="form-control fw-bold" value="@Model.CodigoFornecedor" readonly>
+                            </div>
+                            <div class="col-md-6 col-6">
+                                <label class="form-label">Nome Fornecedor</label>
+                                <input type="datetime" class="form-control" value="@Model.NomeFornecedor" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel Lateral de Status -->
+            <div class="col-lg-4 mt-3 mt-lg-0 d-none" id="box-dados">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="bi bi-lightning-charge"></i> Dados Produtos
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div class="mb-3">
+                            <label class="d-block text-muted mb-1 small">Data Atualização</label>
+                            <span id="txtDataAtualizacao">23/05/2025</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="d-block text-muted mb-1 small">Custo</label>
+                            <span id="txtCustoDetalhe">2,30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div><i class="bi bi-list-check"></i> Itens</div>
+            </div>
+
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom table-striped mb-0" style="min-width: 1000px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Nome</th>
+                                <th class="">Custo</th>
+                                <th>Margem</th>
+                                <th class="">Preco Final</th>
+                                <th class="">Qtd</th>
+                                <th class="">Estoque</th>
+                                <th class="">Categoria</th>
+                                <th class="">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.ListaProdutosFaturamento.Count > 0)
+                            {
+                                @for (int intIndex = 0; intIndex < Model.ListaProdutosFaturamento.Count; intIndex++)
+                                {
+
+                                    <input type="hidden" name="ListaProdutosFaturamento[@intIndex].CodigoProduto" value="@Model.ListaProdutosFaturamento[intIndex].CodigoProduto" />
+                                    <input type="hidden" name="ListaProdutosFaturamento[@intIndex].Custo" value="@Model.ListaProdutosFaturamento[intIndex].Custo" />
+                                    @* <input type="hidden" name="ListaProdutosFaturamento[@intIndex].PrecoVenda" value="@Model.ListaProdutosFaturamento[intIndex].PrecoVenda" /> *@
+                                    <input type="hidden" name="ListaProdutosFaturamento[@intIndex].Quantidade" value="@Model.ListaProdutosFaturamento[intIndex].Quantidade" />
+
+                                    <tr style="cursor: pointer"
+                                        onclick="selecionarProduto(this)"
+                                        data-custo="@Model.ListaProdutosFaturamento[intIndex].CustoAntigo"
+                                        data-data-atualizacao="@Model.ListaProdutosFaturamento[intIndex].DataAtualizacao">
+                                        <td>@Model.ListaProdutosFaturamento[intIndex].CodigoProduto</td>
+                                        <td>@Model.ListaProdutosFaturamento[intIndex].NomeProduto</td>
+                                        <td>@Model.ListaProdutosFaturamento[intIndex].Custo</td>
+                                        <td class="td-margem fw-bold"></td>
+                                        <td style="width: 110px">
+                                            <input type="text" class="form-control form-control-sm input-preco"
+                                                   name="ListaProdutosFaturamento[@intIndex].PrecoVenda"
+                                                   value="@Model.ListaProdutosFaturamento[intIndex].PrecoVenda"
+                                                   data-custo="@Model.ListaProdutosFaturamento[intIndex].Custo"
+                                                   oninput="mascaraECalculo(this)" />
+                                        </td>
+                                        <td>@Model.ListaProdutosFaturamento[intIndex].Quantidade</td>
+                                        <td>@Model.ListaProdutosFaturamento[intIndex].QuantidadeEstoque</td>
+                                        <td>@Model.ListaProdutosFaturamento[intIndex].NomeCategoria</td>
+                                        <td>@Model.ListaProdutosFaturamento[intIndex].ValorTotal</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center">Nenhum produto encontrado mediante a pesquisa.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Função chamada toda vez que o usuário digita algo
+        function mascaraECalculo(input) {
+            // 1. MÁSCARA: Remove tudo que não for número ou vírgula
+            let valorLimpo = input.value.replace(/[^0-9,]/g, '');
+
+            // Garante apenas uma vírgula
+            if ((valorLimpo.match(/,/g) || []).length > 1) {
+                    valorLimpo = valorLimpo.substring(0, valorLimpo.lastIndexOf(','));
+            }
+
+            // Atualiza o valor no input visualmente
+            input.value = valorLimpo;
+
+            // 2. CÁLCULO DA MARGEM
+            calcularMargemLinha(input);
+        }
+
+        function calcularMargemLinha(input) {
+            // Pega a linha (tr) pai do input
+            let linha = input.closest('tr');
+            let tdMargem = linha.querySelector('.td-margem');
+
+            // Converte os valores para Float (trocando virgula por ponto para o JS entender)
+            // Se o valor for vazio, considera 0
+            let precoVenda = parseFloat(input.value.replace(',', '.') || 0);
+            let custo = parseFloat(input.dataset.custo.replace(',', '.') || 0);
+
+            // Lógica de cálculo de margem (Exemplo: Margem sobre venda)
+            // Fórmula: ((Preço - Custo) / Preço) * 100
+
+        if (precoVenda > 0) {
+            let lucro = precoVenda - custo;
+
+            // --- CORREÇÃO AQUI ---
+            // Antes estava dividindo por precoVenda (Máximo 100%)
+            // Agora vamos dividir pelo CUSTO (Pode dar 1000%, 2000%...)
+
+            let margemPercentual = 0;
+
+            if (custo > 0) {
+                 margemPercentual = (lucro / custo) * 100;
+            } else {
+                 // Se custo for 0, o lucro é tecnicamente infinito (100% total)
+                 margemPercentual = 100;
+            }
+
+            // Formata para exibir (Ex: 1015,24%)
+            tdMargem.innerText = margemPercentual.toFixed(2).replace('.', ',') + '%';
+
+            // Lógica de Cores:
+            // Verde se der lucro, Vermelho se prejuízo
+            tdMargem.style.color = margemPercentual < 0 ? 'red' : 'green';
+        } else {
+                tdMargem.innerText = '0,00%';
+                tdMargem.style.color = 'black';
+            }
+        }
+
+        // 3. INICIALIZAÇÃO
+        // Executa o cálculo em todos os campos ao carregar a página
+        // para que a margem já apareça preenchida.
+        document.addEventListener("DOMContentLoaded", function() {
+            let inputs = document.querySelectorAll('.input-preco');
+            inputs.forEach(function(input) {
+                calcularMargemLinha(input);
+            });
+        });
+
+        function selecionarProduto(linha) {
+            // 1. LIMPEZA VISUAL: Remove o destaque de todas as linhas antes
+            let todasLinhas = document.querySelectorAll('tbody tr');
+            todasLinhas.forEach(tr => tr.classList.remove('table-active'));
+
+            // 2. DESTAQUE: Adiciona destaque na linha clicada (classe do Bootstrap)
+            linha.classList.add('table-active');
+
+            // 3. PEGAR DADOS: Pega os valores dos atributos data- que colocamos no TR
+            // O dataset acessa os atributos data- (ex: data-custo vira dataset.custo)
+            let custo = linha.dataset.custo;
+            let dataAtualizacao = linha.dataset.dataAtualizacao;
+
+            // 4. ATUALIZAR CARD: Joga os valores nos spans do card lateral
+            document.getElementById('txtDataAtualizacao').innerText = dataAtualizacao || "Sem data";
+            let box = document.getElementById('box-dados')
+
+            box.classList.remove("d-none")
+
+            // Formatação opcional para garantir que pareça dinheiro
+            // Se o valor vier "2.5", transforma em "2,50" visualmente se necessário,
+            // ou apenas exibe como veio do banco.
+            document.getElementById('txtCustoDetalhe').innerText = "R$ " + custo;
+        }
+    </script>
+}

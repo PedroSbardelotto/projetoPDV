@@ -26,7 +26,8 @@ namespace PDV.Data
         public DbSet<TipoPagamento> TipoPagamento { get; set; }
         public DbSet<UsuarioEmpresa> UsuarioEmpresa { get; set; }
         public DbSet<Vendas> Vendas { get; set; }
-
+        public DbSet<NotaFiscal> NotaFiscal { get; set; }
+        public DbSet<ProdutoFornecedor> ProdutoFornecedor { get; set; }
             
     }
 }

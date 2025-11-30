@@ -1,0 +1,52 @@
+﻿@model PDV.Models.TipoPagamento
+
+@{
+    ViewData["Title"] = "Novo Tipo de Pagamento";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 text-center">
+
+                    <div class="mb-4">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-flex text-success mb-3">
+                            <i class="bi bi-credit-card-2-front fs-2"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark">Forma de Pagamento</h4>
+                        <p class="text-muted small">Adicione um novo método de recebimento.</p>
+                    </div>
+
+                    <form asp-action="Create" class="text-start">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Descricao" class="form-label fw-bold small text-uppercase text-muted">Descrição</label>
+                            <div class="input-group input-group-lg">
+                                <input asp-for="Descricao" class="form-control bg-light border-0" placeholder="Ex: Pix, Cartão Visa" autofocus />
+                            </div>
+                            <span asp-validation-for="Descricao" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm rounded-3">
+                                Cadastrar
+                            </button>
+                            <a asp-action="Index" class="btn btn-link text-secondary text-decoration-none small">
+                                Cancelar e voltar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
