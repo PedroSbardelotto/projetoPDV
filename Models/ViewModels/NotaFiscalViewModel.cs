@@ -25,6 +25,7 @@
         public string CNPJ { get; set; }
         public string InscricaoEstadual { get; set; }
         public bool BotaoGravar { get; set; }
+        public bool BotaoCancelar { get; set; }
 
         public bool AbrirModal { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.EntityFrameworkCore;
 using NFeDANFEGenerator;
 using PDV.Data;
@@ -322,13 +323,13 @@ namespace PDV.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Numero == ide.nNF).FirstOrDefaultAsync();
+            //NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Numero == ide.nNF).FirstOrDefaultAsync();
 
-            if (objFornecedor != null)
-            {
-                TempData["Aviso"] = "Este XML já foi importado.";
-                return RedirectToAction(nameof(Index));
-            }
+            //if (objFornecedor != null)
+            //{
+            //    TempData["Aviso"] = "Este XML já foi importado.";
+            //    return RedirectToAction(nameof(Index));
+            //}
 
             List<ProdutoFornecedor> lstProdutoFornecedor = await _context.ProdutoFornecedor.Include(x => x.Produto).Include(x => x.Produto.Categoria).Where(x => x.CodigoFornecedor == objFornecedor.Id).ToListAsync();
 
@@ -468,7 +469,7 @@ namespace PDV.Controllers
                     Custo = item.PrecoProdutoNFe.ToString(),
                     PrecoVenda = objProduto.Preco.ToString(),
                     ValorTotal = item.ValorTotalProdNFe,
-                    CustoAntigo = objProduto.Preco.ToString(),
+                    CustoAntigo = objProduto.Custo.ToString(),
                     NomeCategoria = objProduto.Categoria.Nome,
                     DataAtualizacao = objProduto.DataAtualizacao.ToString("dd/MM/yyyy")
                 });
@@ -530,7 +531,7 @@ namespace PDV.Controllers
                 lstProdFaturamento.Add(new ProdutoFaturamento
                 {
                     CodigoProduto = item.CodigoProduto.ToString(),
-                    NomeProduto = item.Nome,
+                    NomeProduto = objProduto.Nome,
                     Quantidade = item.Quantidade.ToString("F2", CultureInfo.InvariantCulture),
                     QuantidadeEstoque = objProduto.Quantidade.ToString(),
                     Custo = item.Preco.ToString(),
@@ -549,6 +550,92 @@ namespace PDV.Controllers
             notaFiscalView.ListaProdutosFaturamento = lstProdFaturamento;
 
             return View("Edit", notaFiscalView);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> BuscarNotasPartial(string Fornecedor, DateTime? DataInicial, string Numero)
+        {
+
+            var resultados = await _context.NotaFiscal
+                // ... Where, Filtros, etc ...
+                .Select(n => new NotaFiscalViewModel // Projeta para o DTO
+                {
+                    Id = n.Id,
+                    Numero = n.Numero,
+                    DataEmissao = n.DataEmissao, // Deixe o Razor formatar a data
+                    ValorTotal = n.ValorTotal,
+                    Status = n.Status
+                })
+                .ToListAsync();
+
+            // 2. RETORNA A PARTIAL VIEW (o HTML já renderizado)
+            return PartialView("_BuscarNFe", resultados);
+        }
+
+        public async Task<IActionResult> BuscaEPopulaNota(NotaFiscalViewModel notaFiscalViewModel)
+        {
+            NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Id == notaFiscalViewModel.Id).Include(x => x.Produtos).FirstOrDefaultAsync();
+            Fornecedor objFornecedor = await _context.Fornecedor.Where(x => x.Id == objNFe.CodigoFornecedor).FirstOrDefaultAsync();
+
+            notaFiscalViewModel.ChaveAcesso = objNFe.ChaveAcesso;
+            notaFiscalViewModel.Numero = objNFe.Numero;
+            notaFiscalViewModel.DataEmissao = objNFe.DataEmissao;
+            notaFiscalViewModel.DataEntrada = objNFe.DataEntrada;
+            notaFiscalViewModel.CNPJ = objFornecedor.CNPJ;
+            notaFiscalViewModel.CodigoFornecedor = objFornecedor.Id;
+            notaFiscalViewModel.InscricaoEstadual = objFornecedor.InscricaoEstadual;
+            notaFiscalViewModel.NomeFornecedor = objFornecedor.NomeRazao;
+            notaFiscalViewModel.ValorTotal = objNFe.ValorTotal;
+            notaFiscalViewModel.Serie = objNFe.Serie.ToString();
+            notaFiscalViewModel.NaturesaOperacao = objNFe.NatuOp;
+            notaFiscalViewModel.ListaProdutos = new List<ProdutoNFe>();
+
+            foreach(var item in objNFe.Produtos)
+            {
+                notaFiscalViewModel.ListaProdutos.Add(new ProdutoNFe
+                {
+                    CodigoProdutoNFe = item.CodigoProdNFe,
+                    NomeProdutoNFe = item.Nome,
+                    QuantidadeInterna = item.Quantidade,
+                    PrecoProdutoNFe = item.Preco,
+                    UnidadeMedida = item.UnidadeMedidaNFe,
+                    ValorTotalProdNFe = item.ValorTotal.ToString()
+                });
+            }
+
+            notaFiscalViewModel.AbrirModal = false;
+            notaFiscalViewModel.BotaoGravar = false;
+            notaFiscalViewModel.BotaoCancelar = true;
+
+            return View("index", notaFiscalViewModel);
+        }
+
+        public async Task<IActionResult> CancelarNFe(NotaFiscalViewModel notaFiscalViewModel)
+        {
+            NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Id == notaFiscalViewModel.Id).Include(x => x.Produtos).FirstOrDefaultAsync();
+
+            if(objNFe.Status == "FATURADA")
+            {
+                foreach (var item in objNFe.Produtos)
+                {
+                    Produto objProduto = await _context.Produto.FirstOrDefaultAsync(x => x.Id == Convert.ToUInt32(item.CodigoProduto));
+
+                    objProduto.Quantidade -= (int)Convert.ToDecimal(item.Quantidade, System.Globalization.CultureInfo.InvariantCulture);
+
+                    _context.Produto.Update(objProduto);
+                    await _context.SaveChangesAsync();
+                }
+
+                _context.NotaFiscal.Remove(objNFe);
+                await _context.SaveChangesAsync();
+
+                TempData["Sucesso"] = "NFe cancelda com sucesso!";
+                return View("index", notaFiscalViewModel);
+            }
+
+            TempData["Erro"] = "NFe pendente de faturamento. impossivel excluir!";
+            return RedirectToAction("Details", "NotaFiscal");
+
         }
     }
 }

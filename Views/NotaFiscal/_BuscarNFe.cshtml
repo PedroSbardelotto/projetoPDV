@@ -1,0 +1,41 @@
+﻿@model List<PDV.Models.ViewModels.NotaFiscalViewModel>
+
+@{
+    ViewData["Title"] = "Novo Tipo de Pagamento";
+}
+
+
+@if (Model.Count > 0)
+{
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        var nota = Model[i];
+
+        <tr class="result-row" onclick="selecionarNota('@nota.NomeFornecedor', '@nota.Numero', '@nota.Id')">
+
+            <td><span class="badge bg-@(@nota.Status == "PENDENTE" ? "warning text-dark" : "success")">@nota.Status</span></td>
+            <td class="fw-bold">@nota.Numero</td>
+            <td>@nota.NomeFornecedor</td>
+            <td>@nota.DataEntrada</td>
+            <td class="text-end fw-bold">R$ @nota.ValorTotal.ToString("N2")</td>
+            <td class="text-center">
+                <form asp-action="BuscaEPopulaNota" asp-controller="NotaFiscal" method="post">
+
+                    <input type="hidden" name="Id" value="@nota.Id" />
+
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        Abrir
+                    </button>
+
+                </form>
+            </td>
+        </tr>
+    }
+}
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
