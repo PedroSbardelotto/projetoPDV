@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PDV.Data;
 using PDV.Enums;
 using PDV.Models;
 using PDV.Models.Helper;
+using PDV.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +38,7 @@ namespace PDV.Controllers
             pDVContext = pDVContext.OrderByDescending(p => p.DataEntrada);
             int pageSize = 10;
 
-            ViewBag.TipoPagamentos = await _context.TipoPagamento.ToListAsync();
+            ViewBag.TipoPagamentos = await _context.TipoPagamento.AsNoTracking().ToListAsync();
             return View(await PaginatedList<Vendas>.CreateAsync(pDVContext.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
         // GET: Vendas/Details/5
@@ -46,8 +48,8 @@ namespace PDV.Controllers
             {
                 return NotFound();
             }
-
-            var vendas = await _context.Vendas
+            VendaComprovanteViewModel view = new VendaComprovanteViewModel();
+            view.Vendas = await _context.Vendas
                 .Include(v => v.Cliente)
                 .Include(v => v.Fechamento)
                 .Include(v => v.TipoPagamento)
@@ -55,20 +57,38 @@ namespace PDV.Controllers
                 .Include(v => v.ProdutosVenda)
                     .ThenInclude(pv => pv.Produto)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (vendas == null)
+            if (view.Vendas == null)
             {
                 return NotFound();
             }
 
-            var somaValores = vendas.ProdutosVenda.Sum(x => x.Produto.Preco * x.Quantidade);
+            var somaValores = view.Vendas.ProdutosVenda.Sum(x => x.Produto.Preco * x.Quantidade);
 
-            if (vendas.ValorTotal != somaValores)
+            if (view.Vendas.ValorTotal != somaValores)
             {
-                var novoValor = somaValores - vendas.ValorTotal;
-                vendas.ValorTotal = somaValores - novoValor;
+                var novoValor = somaValores - view.Vendas.ValorTotal;
+                view.Vendas.ValorTotal = somaValores - novoValor;
             }
 
-            return View(vendas);
+            view.ProdutosVenda = await _context.ProdutosVenda.Where(v => v.VendasId == id).ToListAsync();
+            var produtos = await _context.Produto.ToListAsync();
+            view.Produtos = new List<ProdutoVendasViewModel>();
+            foreach (var item in view.ProdutosVenda)
+            {
+                var produtoBD = await _context.Produto.FirstOrDefaultAsync(p => p.Id == item.ProdutoId);
+                if(produtoBD != null)
+                {
+                    ProdutoVendasViewModel prod = new ProdutoVendasViewModel();
+                    prod.Produto = produtoBD;
+                    prod.Quantidade = item.Quantidade;
+                    prod.ValorTotal = produtoBD.Preco * prod.Quantidade;
+                    view.Produtos.Add(prod);
+                }
+            }
+
+            view.UsuarioEmpresa = await _context.UsuarioEmpresa.FirstOrDefaultAsync();
+
+            return View(view);
         }
 
         // GET: Vendas/Create
@@ -124,7 +144,7 @@ namespace PDV.Controllers
 
                 _context.Add(vendas);
 
-                EditarQuantidadeProdutos(listaProdutos!);
+                await EditarQuantidadeProdutos(listaProdutos!);
                 await _context.SaveChangesAsync();
                 TempData["Sucesso"] = "Pendência gerada com sucesso!";
             }
@@ -181,7 +201,7 @@ namespace PDV.Controllers
 
                         _context.Add(novaVenda);
                     }
-                    EditarQuantidadeProdutos(listaProdutos!);
+                    await EditarQuantidadeProdutos(listaProdutos!);
                     await _context.SaveChangesAsync();
                     TempData["Sucesso"] = "Venda finalizada com sucesso!";
                 }
@@ -303,9 +323,25 @@ namespace PDV.Controllers
         public async Task<IActionResult> Comprovante(int? id)
         {
             if (id == null) return NotFound();
-            var venda = await _context.Vendas.Include(v => v.Cliente).Include(v => v.TipoPagamento).FirstOrDefaultAsync(m => m.Id == id);
-
+            VendaComprovanteViewModel venda = new VendaComprovanteViewModel();
+            venda.Vendas = await _context.Vendas.Include(v => v.Cliente).Include(v => v.TipoPagamento).FirstOrDefaultAsync(m => m.Id == id);
+            venda.UsuarioEmpresa = await _context.UsuarioEmpresa.FirstOrDefaultAsync();
             if (venda == null) return NotFound();
+            venda.ProdutosVenda = await _context.ProdutosVenda.ToListAsync();
+            var produtos = await _context.Produto.ToListAsync();
+            venda.Produtos = new List<ProdutoVendasViewModel>();
+            foreach (var item in venda.ProdutosVenda)
+            {
+                var produtoBD = await _context.Produto.FirstOrDefaultAsync(p => p.Id == item.ProdutoId);
+                if (produtoBD != null)
+                {
+                    ProdutoVendasViewModel prod = new ProdutoVendasViewModel();
+                    prod.Produto = produtoBD;
+                    prod.Quantidade = item.Quantidade;
+                    prod.ValorTotal = produtoBD.Preco * prod.Quantidade;
+                    venda.Produtos.Add(prod);
+                }
+            }
             return View(venda);
         }
 
@@ -340,7 +376,7 @@ namespace PDV.Controllers
             return RedirectToAction("VendasPendentes");
         }
 
-        private async void EditarQuantidadeProdutos(List<ProdutosVenda> listaProdutos)
+        private async Task EditarQuantidadeProdutos(List<ProdutosVenda> listaProdutos)
         {
             if (listaProdutos!.Count > 0)
             {
@@ -358,6 +394,7 @@ namespace PDV.Controllers
                         _context.Update(prodBd);
                     }
                 }
+                await _context.SaveChangesAsync();
             }
         }
 

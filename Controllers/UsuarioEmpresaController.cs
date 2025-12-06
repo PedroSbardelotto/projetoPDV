@@ -120,7 +120,7 @@ namespace PDV.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,NomeRazao,NomeFantasia,CNPJ,InscricaoEstadual,Email,Senha,Contato,DataEntrada,ChaveAcessoId")] UsuarioEmpresa usuarioEmpresa)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,NomeRazao,NomeFantasia,CNPJ,InscricaoEstadual,Email,Contato,DataEntrada")] UsuarioEmpresa usuarioEmpresa)
         {
             if (id != usuarioEmpresa.Id)
             {
@@ -131,6 +131,9 @@ namespace PDV.Controllers
             {
                 try
                 {
+                    usuarioEmpresa.ChaveAcessoId = 2;
+                    usuarioEmpresa.Senha = "";
+                    usuarioEmpresa.CNPJ = usuarioEmpresa.CNPJ.Replace(".", "").Replace(".", "").Replace("/", "").Replace("-", "");
                     _context.Update(usuarioEmpresa);
                     await _context.SaveChangesAsync();
                 }
@@ -145,10 +148,10 @@ namespace PDV.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = usuarioEmpresa.Id });
             }
             ViewData["ChaveAcessoId"] = new SelectList(_context.ChaveAcesso, "Id", "UUID", usuarioEmpresa.ChaveAcessoId);
-            return View(usuarioEmpresa);
+            return RedirectToAction(nameof(Details), new { id = usuarioEmpresa.Id });
         }
 
         // GET: UsuarioEmpresa/Delete/5

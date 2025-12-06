@@ -56,7 +56,20 @@ namespace PDV.Controllers
             //homeViewModel.Produtos = _context.Produto.Where(p=> p.Status == true).ToList();
             homeViewModel.Clientes = _context.Cliente.ToList();
             homeViewModel.Fechamento = _context.Fechamento.Where(f => f.DataFechamento == null).SingleOrDefault();
-            ViewBag.TipoPagamentos = _context.TipoPagamento.ToList();
+            if(homeViewModel.Fechamento != null && homeViewModel.Fechamento!.DataAbertura.Date != DateTime.Now.Date){
+                TempData["Erro"] = "Data de abertura do caixa atual não é de hoje!";
+            }
+            
+            
+            var tipoPagamentos = _context.TipoPagamento.ToList();
+            ViewBag.TipoPagamentos = tipoPagamentos;
+
+            var empresa = _context.UsuarioEmpresa.ToList();
+            if(tipoPagamentos.Count == 0 && empresa.Count == 0)
+            {
+                TempData["Erro"] = "Cadastro incompleto! Faltando Formas de Pagamentos e dados da Empresa!";
+            }
+
             return View(homeViewModel);
         }
 

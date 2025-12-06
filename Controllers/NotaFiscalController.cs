@@ -323,13 +323,13 @@ namespace PDV.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            //NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Numero == ide.nNF).FirstOrDefaultAsync();
+            NotaFiscal objNFe = await _context.NotaFiscal.Where(x => x.Numero == ide.nNF).FirstOrDefaultAsync();
 
-            //if (objFornecedor != null)
-            //{
-            //    TempData["Aviso"] = "Este XML já foi importado.";
-            //    return RedirectToAction(nameof(Index));
-            //}
+            if (objFornecedor != null)
+            {
+                TempData["Aviso"] = "Este XML já foi importado.";
+                return RedirectToAction(nameof(Index));
+            }
 
             List<ProdutoFornecedor> lstProdutoFornecedor = await _context.ProdutoFornecedor.Include(x => x.Produto).Include(x => x.Produto.Categoria).Where(x => x.CodigoFornecedor == objFornecedor.Id).ToListAsync();
 

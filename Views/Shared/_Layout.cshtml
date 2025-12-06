@@ -8,7 +8,7 @@
     {
         statusCaixa = _context.Fechamento.Any(f => f.DataFechamento == null);
         var empresa = _context.UsuarioEmpresa.FirstOrDefaultAsync();
-        if(empresa != null)
+        if(empresa.Result != null)
         {
             nomeEmpresa = empresa.Result!.NomeFantasia.ToString();
         }
@@ -309,12 +309,12 @@
 
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="NotaFiscal" asp-action="Index">
-                            <i class="bi bi-building"></i> NFe
+                            <i class="bi bi-journal-text"></i> NFe
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="NotaFiscal" asp-action="Details">
-                            <i class="bi bi-building"></i> Faturamento
+                            <i class="bi bi-currency-dollar"></i> Notas Faturadas
                         </a>
                     </li>
 

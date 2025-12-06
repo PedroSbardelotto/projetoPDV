@@ -1,62 +1,103 @@
-﻿@model PDV.Models.Vendas
+﻿@model PDV.Models.ViewModels.VendaComprovanteViewModel
 @using System.Globalization
 
 @{
-    Layout = null; // CRUCIAL: Remove o layout padrão do site
+    Layout = null;
     var culture = new CultureInfo("pt-BR");
 
-    // Lógica de Status (simplificada para impressão)
-    string statusTexto = Model.Status == 1 ? "APROVADO" : (Model.Status == 2 ? "PENDENTE" : "CANCELADO");
+    // Lógica de Status
+    string statusTexto = Model.Vendas.Status == 1 ? "APROVADO" : (Model.Vendas.Status == 2 ? "PENDENTE" : "CANCELADO");
+    
+    // Formatação CNPJ
+    string cnpjFormatado = Model.UsuarioEmpresa.CNPJ;
+    if (!string.IsNullOrEmpty(cnpjFormatado) && long.TryParse(cnpjFormatado, out long cnpjNumerico))
+    {
+        cnpjFormatado = cnpjNumerico.ToString(@"00\.000\.000\/0000\-00");
+    }
 }
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="utf-8" />
-    <title>Comprovante #@Model.Id</title>
-    <!-- Importando Bootstrap apenas para estilização básica -->
+    <title>Comprovante #@Model.Vendas.Id</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <style>
         body {
-            background-color: #fff;
-            font-family: 'Courier New', Courier, monospace; /* Fonte estilo cupom */
+            background-color: #f8f9fa; /* Fundo cinza suave para destacar o papel */
+            font-family: 'Courier New', Courier, monospace;
             padding: 20px;
+            display: flex;
+            justify-content: center;
         }
 
         .ticket {
             width: 100%;
-            max-width: 300px; /* Largura padrão de impressora térmica (80mm aprox) */
-            margin: 0 auto;
+            max-width: 300px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Sombra suave para parecer papel */
         }
 
         .dashed-line {
             border-top: 1px dashed #000;
-            margin: 10px 0;
+            margin: 12px 0;
         }
 
-        .text-xs { font-size: 12px; }
-        .text-sm { font-size: 14px; }
+        .text-xs { font-size: 11px; }
+        .text-sm { font-size: 13px; }
         .fw-bold { font-weight: bold; }
         
-        /* Remove margens da impressora */
+        /* Ajustes específicos para a lista de produtos */
+        .item-row {
+            margin-bottom: 6px;
+        }
+        .item-name {
+            font-weight: 600;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            color: #555;
+            font-size: 12px;
+        }
+
+        /* Estilos de Impressão */
         @@media print {
             @@page { margin: 0; }
-            body { margin: 10px; }
-            .no-print { display: none; }
+            body { 
+                background-color: #fff; 
+                padding: 0; 
+                display: block;
+            }
+            .ticket {
+                width: 100%;
+                max-width: 100%;
+                box-shadow: none;
+                padding: 10px;
+            }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="ticket text-center text-uppercase">
+    <div class="ticket text-uppercase">
         
         <!-- Cabeçalho -->
-        <div class="mb-3">
-            <h5 class="fw-bold mb-0">PDV SYSTEM</h5>
-            <span class="text-xs">Rua Exemplo, 123 - Centro</span><br />
-            <span class="text-xs">CNPJ: 00.000.000/0000-00</span>
+        <div class="text-center mb-3">
+            <h5 class="fw-bold mb-1">PDV SYSTEM</h5>
+            <span class="text-xs fw-bold">@Model.UsuarioEmpresa.NomeFantasia</span>
+            <br />
+            <span class="text-xs">Rua Exemplo, 123 - Centro</span>
+            <br />
+            <span class="text-xs">CNPJ: @cnpjFormatado</span>
         </div>
 
         <div class="dashed-line"></div>
@@ -64,15 +105,50 @@
         <!-- Dados da Venda -->
         <div class="text-start">
             <div class="d-flex justify-content-between text-sm">
-                <span>DATA: @Model.DataEntrada.ToString("dd/MM/yyyy")</span>
-                <span>HORA: @Model.DataEntrada.ToString("HH:mm")</span>
+                <span>DATA: @Model.Vendas.DataEntrada.ToString("dd/MM/yyyy")</span>
+                <span>HORA: @Model.Vendas.DataEntrada.ToString("HH:mm")</span>
             </div>
             <div class="text-sm mt-1">
-                COD. VENDA: <strong>#@Model.Id.ToString("D6")</strong>
+                COD: <strong>#@Model.Vendas.Id.ToString("D6")</strong>
             </div>
             <div class="text-sm mt-1">
-                CLIENTE: @(Model.Cliente != null ? Model.Cliente.Nome : "CONSUMIDOR FINAL")
+                CLIENTE: @(Model.Vendas.Cliente != null ? Model.Vendas.Cliente.Nome : "CONSUMIDOR FINAL")
             </div>
+        </div>
+
+        <div class="dashed-line"></div>
+
+        <!-- LISTA DE PRODUTOS -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between text-xs fw-bold border-bottom border-dark pb-1 mb-2">
+                <span>ITEM</span>
+                <span>TOTAL</span>
+            </div>
+
+            @if (Model.Vendas.ProdutosVenda != null && Model.Vendas.ProdutosVenda.Any())
+            {
+                foreach (var item in Model.Vendas.ProdutosVenda)
+                {
+                    // Cálculo do total do item (Quantidade * Preço Unitário)
+                    // Assumindo que você tem acesso ao preço do produto através da navegação
+                    var precoUnitario = item.Produto.Preco;
+                    var totalItem = item.Quantidade * precoUnitario;
+
+                    <div class="item-row">
+                        <span class="item-name text-sm">@item.Produto.Nome</span>
+                        <div class="item-details">
+                            <span>@item.Quantidade x @precoUnitario.ToString("N2", culture)</span>
+                            <span class="fw-bold text-dark">@totalItem.ToString("N2", culture)</span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center text-xs text-muted py-2">
+                    - Detalhes dos itens indisponíveis -
+                </div>
+            }
         </div>
 
         <div class="dashed-line"></div>
@@ -80,11 +156,11 @@
         <!-- Totais -->
         <div class="d-flex justify-content-between align-items-center my-2">
             <span class="fw-bold text-sm">TOTAL A PAGAR</span>
-            <span class="fs-4 fw-bold">@Model.ValorTotal.ToString("C", culture)</span>
+            <span class="fs-5 fw-bold">@Model.Vendas.ValorTotal.ToString("C", culture)</span>
         </div>
 
         <div class="text-start text-sm">
-            FORMA PAGTO: @(Model.TipoPagamento?.Descricao ?? "NÃO INFORMADO")
+            FORMA PAGTO: <strong>@(Model.Vendas.TipoPagamento?.Descricao ?? "NÃO INFORMADO")</strong>
         </div>
         
         <div class="text-start text-sm mt-1">
@@ -95,19 +171,21 @@
 
         <!-- Rodapé -->
         <div class="text-center mt-4">
-            <p class="text-xs mb-1">Obrigado pela preferência!</p>
+            <p class="text-xs mb-1 fw-bold">Obrigado pela preferência!</p>
             <p class="text-xs text-muted">Este documento não possui valor fiscal.</p>
+            <p class="text-xs text-muted mt-1">www.seusistema.com.br</p>
         </div>
         
-        <!-- Botão apenas para tela (some na impressão) -->
+        <!-- Botão apenas para tela -->
         <button onclick="window.print()" class="btn btn-dark btn-sm w-100 mt-4 no-print">
-            <i class="bi bi-printer-fill me-2"></i>IMPRIMIR
+            <i class="bi bi-printer-fill me-2"></i> IMPRIMIR COMPROVANTE
         </button>
 
     </div>
 
     <script>
-        window.onload = function() { window.print(); }
+        // Opcional: Descomente para imprimir automaticamente ao abrir
+        // window.onload = function() { window.print(); }
     </script>
 </body>
 </html>
